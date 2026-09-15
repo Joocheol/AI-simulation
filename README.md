@@ -79,6 +79,15 @@ flowchart LR
 | [05 · 운영과 라이선스](docs/05-operations-and-license.md) | 사전 준비, **전산실 환경**, **PLE 라이선스 정책**, 리스크 레지스터 | 교육담당자·주관 학과 |
 | [06 · 평가와 후속](docs/06-assessment-and-followup.md) | 체크포인트, 추적표, 루브릭, 설문, 후속 학습 경로 | 교육담당자 |
 | [07 · PLE 제약 검증 프로토콜](docs/07-ple-verification.md) | **착수 전 필수 검증 T1~T4**, 트랙 A/B 결정 규칙 | 모델 제작자 |
+| [08 · 강사 런북](docs/08-instructor-runbook.md) | **블록별 발화 스크립트**, 예상 실수와 복구, FAQ, 비상 절차 | 강사·조교 |
+
+### 교보재 (배포용 실물)
+
+| 자료 | 사용 시점 |
+|---|---|
+| [확률분포 선택 치트시트](docs/handouts/distribution-cheatsheet.md) | 1일차 00:25 배포 · 실습1에서 사용 |
+| [시나리오 비교 워크시트](docs/handouts/scenario-comparison-worksheet.md) | 2일차 실습5 |
+| [시뮬레이션 적용 캔버스](docs/handouts/application-canvas.md) | 2일차 적용 워크숍 (양식 + 완성 예시) |
 
 ---
 
