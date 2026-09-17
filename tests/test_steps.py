@@ -26,6 +26,7 @@ from steps.step02_pi_mesa import MonteCarloPiModel
 from steps.step03_random_walk import RandomWalkModel
 from steps.step04_wealth import BoltzmannWealthModel, gini, gini_geometric
 from steps.step05_schelling import SchellingModel
+from steps.step06_bankrun import BankRunModel, run_once
 
 
 # --- 1단계 ---------------------------------------------------------------
@@ -196,6 +197,93 @@ def test_extreme_tolerance_fails_to_converge():
     assert model.running                        # 끝까지 멈추지 못한다
     assert model.unhappy_count > 0
     assert model.mean_similar_fraction < 0.65   # 지표는 오히려 낮다
+
+
+# --- 6단계 ---------------------------------------------------------------
+
+def test_balance_sheet_matches_svb():
+    """모형의 대차대조표가 SVB의 실제 비율을 재현해야 한다.
+
+    장부상으로는 자본이 넉넉한데(+9%) 시가로 평가하면 음수(-1%)라는 것이
+    이 사건의 핵심이다. 둘의 부호가 다른 것 자체가 재현 대상이다.
+    """
+    model = BankRunModel(n_depositors=2000, seed=0)
+    d = model.initial_deposits
+    assert 0.085 < model.book_equity / d < 0.095           # SVB 실제 +9.1%
+    assert -0.02 < model.mark_to_market_equity / d < 0.0    # SVB 실제 -0.97%
+    assert model.book_equity > 0 > model.mark_to_market_equity
+    assert model.uninsured_share > 0.85                    # SVB 실제 85~94%
+
+
+def test_money_is_conserved():
+    """지급된 돈 + 남은 예금 = 처음 예금. 어떤 seed에서도 성립해야 한다."""
+    for seed in range(4):
+        model = run_once(steps=40, n_depositors=1500, signal_after=0.45, seed=seed)
+        total = model.total_paid + model.deposits
+        assert math.isclose(total, model.initial_deposits, rel_tol=1e-9), total
+
+
+def test_fully_insured_depositors_never_run():
+    """잃을 것이 없으면 뛰지 않는다. 모형의 가장 기본적인 가정."""
+    model = run_once(steps=40, n_depositors=1500, signal_after=0.9,
+                     insurance_cap=1e9, seed=1)
+    assert model.total_paid == 0.0
+    assert not model.failed
+    assert all(a.at_risk == 0 for a in model.agents)
+
+
+def test_no_shock_no_run():
+    """충격도 사회적 동조도 없으면 아무 일도 일어나지 않아야 한다."""
+    model = run_once(steps=40, n_depositors=1500, seed=2,
+                     signal_before=0.0, signal_after=0.0, social_weight=0.0)
+    assert model.total_paid == 0.0
+    assert not model.failed
+
+
+def test_all_cash_bank_cannot_fail():
+    """예금 전액을 현금으로 들고 있으면 어떤 런에도 지급할 수 있다."""
+    model = run_once(steps=40, n_depositors=1500, signal_after=0.9, seed=3,
+                     cash_ratio=1.0, loss_rate=0.0, fire_sale_discount=0.0)
+    assert not model.failed
+
+
+def test_large_shock_always_fails():
+    """충격이 충분히 크면 이 은행은 살아남지 못한다."""
+    for seed in range(4):
+        model = run_once(steps=60, n_depositors=1500, signal_after=0.45, seed=seed)
+        assert model.failed
+
+
+def test_multiple_equilibria_at_critical_point():
+    """6단계의 핵심 주장: 같은 파라미터에서 두 결말이 모두 나온다.
+
+    펀더멘털이 전부 같은데도 어떤 실행은 살아남고 어떤 실행은 무너진다면,
+    은행의 생사가 재무상태만으로 결정되지 않는다는 뜻이다.
+    둘 중 하나만 나오면 그것은 다중균형이 아니다.
+    """
+    outcomes = [run_once(steps=60, n_depositors=1500,
+                         signal_after=0.175, seed=s).failed
+                for s in range(20)]
+    assert any(outcomes), "임계점인데 파산이 하나도 없다"
+    assert not all(outcomes), "임계점인데 생존이 하나도 없다"
+
+
+def test_deposit_insurance_beats_more_capital():
+    """반사실 실험의 핵심 결론이 실제로 성립하는지 확인한다.
+
+    현금을 네 배로 쌓는 것보다 예금보험 한도를 올리는 쪽이
+    파산을 훨씬 많이 막아야 한다.
+    """
+    def failures(**kwargs) -> int:
+        return sum(run_once(steps=60, n_depositors=1500, signal_after=0.175,
+                            seed=s, **kwargs).failed for s in range(12))
+
+    baseline = failures()
+    more_cash = failures(cash_ratio=0.30)
+    more_insurance = failures(insurance_cap=2.5 / 1000)
+
+    assert more_insurance < more_cash
+    assert more_insurance <= baseline // 3
 
 
 def _main() -> int:
