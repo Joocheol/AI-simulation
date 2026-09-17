@@ -80,6 +80,7 @@ flowchart LR
 | [06 · 평가와 후속](docs/06-assessment-and-followup.md) | 체크포인트, 추적표, 루브릭, 설문, 후속 학습 경로 | 교육담당자 |
 | [07 · PLE 제약 검증 프로토콜](docs/07-ple-verification.md) | **착수 전 필수 검증 T1~T4**, 트랙 A/B 결정 규칙 | 모델 제작자 |
 | [08 · 강사 런북](docs/08-instructor-runbook.md) | **블록별 발화 스크립트**, 예상 실수와 복구, FAQ, 비상 절차 | 강사·조교 |
+| [09 · Cloud 타당성 테스트](docs/09-cloud-feasibility-test.md) | **C1~C4 30분 테스트** — 브라우저를 주 실습 환경으로 쓸 수 있는가 | 모델 제작자 |
 
 ### 교보재 (배포용 실물)
 
