@@ -1,0 +1,104 @@
+[
+  {
+    "file": "shinhan5h-start.xlsx",
+    "title": "Excel 시작 파일",
+    "description": "난수·GBM·실제 데이터 입력·비교 실습",
+    "type": "XLSX"
+  },
+  {
+    "file": "shinhan5h-completed.xlsx",
+    "title": "Excel 단계완성 파일",
+    "description": "수식과 결과를 대조하는 참고용 · 실제 가격은 직접 입력",
+    "type": "XLSX"
+  },
+  {
+    "file": "empirical-input-template.csv",
+    "title": "실제 데이터 입력 양식",
+    "description": "날짜와 가격 두 열 · FRED 원자료는 공식 링크에서 다운로드",
+    "type": "CSV"
+  },
+  {
+    "file": "gbm-fixed-seed.csv",
+    "title": "고정 시드 GBM 비교 표본",
+    "description": "실제 시장 표본과 같은 평균·표준편차로 만든 모의 데이터",
+    "type": "CSV"
+  },
+  {
+    "file": "claude-prompts-ko.txt",
+    "title": "Claude 실습 프롬프트",
+    "description": "단계별 요청과 검증 질문을 복사해서 사용",
+    "type": "TXT"
+  },
+  {
+    "file": "excel-formulas.tsv",
+    "title": "Excel 수식 모음",
+    "description": "셀 위치와 수식을 대조",
+    "type": "TSV"
+  },
+  {
+    "file": "source-and-statistics.json",
+    "title": "실제 데이터 분석 결과",
+    "description": "출처·기간·변환·분포와 상관계수 · 원가격 미포함",
+    "type": "JSON"
+  },
+  {
+    "file": "abm.js",
+    "title": "Bornholdt 모형 소스",
+    "description": "브라우저 ES 모듈 · 독립 작성 · 시드 재현 가능",
+    "type": "JS"
+  },
+  {
+    "file": "abm-validation.json",
+    "title": "ABM 재현성 점검 결과",
+    "description": "3개 시드·4개 설정·초기 5,000 sweep 제외",
+    "type": "JSON"
+  },
+  {
+    "file": "validate-abm.mjs",
+    "title": "ABM 검증 스크립트",
+    "description": "abm.js와 같은 폴더에서 node validate-abm.mjs",
+    "type": "JS"
+  },
+  {
+    "file": "abm-notes.md",
+    "title": "ABM 수식과 구현 설명",
+    "description": "모형 규칙·가격 연결·API·검증의 한계",
+    "type": "MD"
+  },
+  {
+    "file": "README-ko.txt",
+    "title": "실습 파일 사용 안내",
+    "description": "Excel 재계산과 실제 자료 입력 방법",
+    "type": "TXT"
+  },
+  {
+    "file": "stylized-facts-lab.xlsx",
+    "title": "통계 검정 실습 파일",
+    "description": "정규·t5·GARCH 예제, 직접 입력, JB·ACF·Ljung–Box·Hill",
+    "type": "XLSX"
+  },
+  {
+    "file": "statistical-lab-readme.txt",
+    "title": "통계 실습 셀별 안내",
+    "description": "100분 단계·셀 주소·QQ 차트 직접 만들기·검증 범위",
+    "type": "TXT"
+  },
+  {
+    "file": "exercise-results-template.csv",
+    "title": "통계 실험 결과 기록표",
+    "description": "가설·표본·시드·문턱·검정값·해석을 기록",
+    "type": "CSV"
+  },
+  {
+    "file": "statistical-lab-code.zip",
+    "title": "통계·꼬리 분석 코드 묶음",
+    "description": "JavaScript 엔진과 Python 독립 검산 · 의존 패키지 안내 포함",
+    "type": "ZIP"
+  },
+  {
+    "file": "workbook-schema.json",
+    "title": "통계 실습 파일의 정확한 셀 배치",
+    "description": "다운로드 통합문서의 참조 주소",
+    "type": "JSON"
+  }
+]

@@ -1,0 +1,353 @@
+{
+  "generated": "2026-10-02",
+  "model": "Bornholdt 2001 Eq.4 + constant-fundamental 2002 price map",
+  "tests": [
+    "fixed-seed deterministic",
+    "spin values ±1",
+    "incremental magnetization equals full sum",
+    "periodic neighbors",
+    "spin-inversion field symmetry",
+    "beta=0 heatbath is 1/2",
+    "stable logistic",
+    "price-return identity"
+  ],
+  "method": "Seeded Mulberry32, random sequential heat bath with replacement; 1 sweep=N attempted site updates; instantaneous magnetization updated each attempt. 5000 burn-in, then 25000 single-sweep returns per seed. Population-moment kurtosis, ACF denominator full centered sum of squares. Finite-run diagnostics, not tail exponent fitting or market validation.",
+  "results": [
+    {
+      "regime": "alpha_zero_control",
+      "parameters": {
+        "L": 32,
+        "J": 1,
+        "alpha": 0,
+        "beta": 0.6666666666666666,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 7,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": 0.947265625,
+      "magnetizationMax": 1,
+      "n": 25000,
+      "mean": 7.8125e-8,
+      "std": 0.005972923217443524,
+      "kurtosis": 3.298880775905497,
+      "excessKurtosis": 0.2988807759054972,
+      "absReturnACF": {
+        "1": 0.0743224310619512,
+        "5": 0.01394520415997776,
+        "10": -0.005322496451860216,
+        "50": -0.005585182754440412
+      }
+    },
+    {
+      "regime": "alpha_zero_control",
+      "parameters": {
+        "L": 32,
+        "J": 1,
+        "alpha": 0,
+        "beta": 0.6666666666666666,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 42,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": 0.951171875,
+      "magnetizationMax": 1,
+      "n": 25000,
+      "mean": 1.5625e-7,
+      "std": 0.006012275851379805,
+      "kurtosis": 3.15048593910289,
+      "excessKurtosis": 0.15048593910288988,
+      "absReturnACF": {
+        "1": 0.06816696181965624,
+        "5": 0.005208224894922216,
+        "10": -0.00042016277936450535,
+        "50": 0.000589189554867213
+      }
+    },
+    {
+      "regime": "alpha_zero_control",
+      "parameters": {
+        "L": 32,
+        "J": 1,
+        "alpha": 0,
+        "beta": 0.6666666666666666,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 2026,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": 0.947265625,
+      "magnetizationMax": 1,
+      "n": 25000,
+      "mean": 2.34375e-7,
+      "std": 0.006085568922869201,
+      "kurtosis": 3.3441636103798467,
+      "excessKurtosis": 0.34416361037984666,
+      "absReturnACF": {
+        "1": 0.08131363659087906,
+        "5": 0.004172325981036813,
+        "10": -0.011566801488772566,
+        "50": 0.0015888796172309073
+      }
+    },
+    {
+      "regime": "teaching_competition",
+      "parameters": {
+        "L": 32,
+        "J": 1,
+        "alpha": 4,
+        "beta": 0.6666666666666666,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 7,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.42578125,
+      "magnetizationMax": 0.4453125,
+      "n": 25000,
+      "mean": -0.00000296875,
+      "std": 0.022475613215855006,
+      "kurtosis": 4.079770579385474,
+      "excessKurtosis": 1.0797705793854737,
+      "absReturnACF": {
+        "1": 0.13463472851353442,
+        "5": 0.11733566195553476,
+        "10": 0.1161508844362797,
+        "50": 0.09097611957420593
+      }
+    },
+    {
+      "regime": "teaching_competition",
+      "parameters": {
+        "L": 32,
+        "J": 1,
+        "alpha": 4,
+        "beta": 0.6666666666666666,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 42,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.443359375,
+      "magnetizationMax": 0.431640625,
+      "n": 25000,
+      "mean": -0.000009453125,
+      "std": 0.021303766475869176,
+      "kurtosis": 4.287746919677978,
+      "excessKurtosis": 1.2877469196779776,
+      "absReturnACF": {
+        "1": 0.14984707087376548,
+        "5": 0.13160888807705257,
+        "10": 0.13847461338795541,
+        "50": 0.09407693597559648
+      }
+    },
+    {
+      "regime": "teaching_competition",
+      "parameters": {
+        "L": 32,
+        "J": 1,
+        "alpha": 4,
+        "beta": 0.6666666666666666,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 2026,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.462890625,
+      "magnetizationMax": 0.41796875,
+      "n": 25000,
+      "mean": -0.0000021875,
+      "std": 0.02122567242797121,
+      "kurtosis": 4.035466828064291,
+      "excessKurtosis": 1.0354668280642914,
+      "absReturnACF": {
+        "1": 0.12963672963180464,
+        "5": 0.11191371839889877,
+        "10": 0.10356843266271373,
+        "50": 0.06810745743591375
+      }
+    },
+    {
+      "regime": "paper_inspired_matched_control",
+      "parameters": {
+        "L": 64,
+        "J": 1,
+        "alpha": 0,
+        "beta": 2,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 7,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.08154296875,
+      "magnetizationMax": 0.10693359375,
+      "n": 25000,
+      "mean": -0.0000052734375,
+      "std": 0.0009367931702285891,
+      "kurtosis": 4.184682735535964,
+      "excessKurtosis": 1.1846827355359641,
+      "absReturnACF": {
+        "1": 0.15584310352594125,
+        "5": 0.13007560679066615,
+        "10": 0.12131255910299582,
+        "50": 0.08825415409554908
+      }
+    },
+    {
+      "regime": "paper_inspired_matched_control",
+      "parameters": {
+        "L": 64,
+        "J": 1,
+        "alpha": 0,
+        "beta": 2,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 42,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.23486328125,
+      "magnetizationMax": -0.01904296875,
+      "n": 25000,
+      "mean": -2.734375e-7,
+      "std": 0.0008768747798731426,
+      "kurtosis": 4.487369169585314,
+      "excessKurtosis": 1.487369169585314,
+      "absReturnACF": {
+        "1": 0.21428283259801367,
+        "5": 0.18722975037457204,
+        "10": 0.17973354550243845,
+        "50": 0.12940007529393835
+      }
+    },
+    {
+      "regime": "paper_inspired_matched_control",
+      "parameters": {
+        "L": 64,
+        "J": 1,
+        "alpha": 0,
+        "beta": 2,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 2026,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": 0.99951171875,
+      "magnetizationMax": 1,
+      "n": 25000,
+      "mean": 0,
+      "std": 0.000010697706201272776,
+      "kurtosis": 2083.3333333333335,
+      "excessKurtosis": 2080.3333333333335,
+      "absReturnACF": {
+        "1": 0.24963980790772144,
+        "5": -0.00048032655674735427,
+        "10": -0.0004804226028494833,
+        "50": -0.0004811909716665158
+      }
+    },
+    {
+      "regime": "paper_inspired_finite_lattice",
+      "parameters": {
+        "L": 64,
+        "J": 1,
+        "alpha": 20,
+        "beta": 2,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 7,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.11083984375,
+      "magnetizationMax": 0.15673828125,
+      "n": 25000,
+      "mean": -0.00000123046875,
+      "std": 0.00269951417797808,
+      "kurtosis": 34.597173467007394,
+      "excessKurtosis": 31.597173467007394,
+      "absReturnACF": {
+        "1": 0.41356631475597555,
+        "5": 0.38001580266622303,
+        "10": 0.33671354813675536,
+        "50": 0.2591352840538351
+      }
+    },
+    {
+      "regime": "paper_inspired_finite_lattice",
+      "parameters": {
+        "L": 64,
+        "J": 1,
+        "alpha": 20,
+        "beta": 2,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 42,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.15625,
+      "magnetizationMax": 0.14306640625,
+      "n": 25000,
+      "mean": -0.00000134765625,
+      "std": 0.0030563392322830556,
+      "kurtosis": 38.44950040014948,
+      "excessKurtosis": 35.44950040014948,
+      "absReturnACF": {
+        "1": 0.4731312856694096,
+        "5": 0.43229286795828614,
+        "10": 0.4099585951588675,
+        "50": 0.3150130301975717
+      }
+    },
+    {
+      "regime": "paper_inspired_finite_lattice",
+      "parameters": {
+        "L": 64,
+        "J": 1,
+        "alpha": 20,
+        "beta": 2,
+        "kappa": 1,
+        "fundamental": 100,
+        "seed": 2026,
+        "historyLimit": 0
+      },
+      "burnin": 5000,
+      "sweeps": 25000,
+      "magnetizationMin": -0.13427734375,
+      "magnetizationMax": 0.16796875,
+      "n": 25000,
+      "mean": -2.1484375e-7,
+      "std": 0.003193516151481717,
+      "kurtosis": 45.411630440223064,
+      "excessKurtosis": 42.411630440223064,
+      "absReturnACF": {
+        "1": 0.44722403974946073,
+        "5": 0.42701508165550317,
+        "10": 0.4043943753197306,
+        "50": 0.29042457668655214
+      }
+    }
+  ]
+}

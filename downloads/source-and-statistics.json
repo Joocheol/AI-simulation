@@ -1,0 +1,462 @@
+{
+  "series": "SP500",
+  "name": "S&P 500 price index",
+  "provider": "FRED / S&P Dow Jones Indices LLC",
+  "source_url": "https://fred.stlouisfed.org/series/SP500",
+  "download_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500&cosd=2020-01-01&coed=2025-12-31",
+  "retrieved_utc": "2026-10-02",
+  "start": "2020-01-02",
+  "end": "2025-12-31",
+  "price_observations": 1508,
+  "return_observations": 1507,
+  "dropped_missing": 57,
+  "return_definition": "ln(P_t/P_(t-1)), consecutive observed trading closes; no forward fill",
+  "adjustment": "Not seasonally adjusted. Price index, excludes dividends, not total return. No claim of adjusted individual equity close.",
+  "raw_data_included": false,
+  "raw_data_reason": "Source states reproduction requires prior written S&P permission. Download directly for local analysis; do not redistribute raw history.",
+  "seed": 20261002,
+  "rng": "Python random.Random Mersenne Twister, gauss(0,1)",
+  "gbm_calibration": {
+    "daily_log_mean": 0.0004927166778283817,
+    "daily_log_sd": 0.013221325668005443,
+    "annual_sigma": 0.20988203832082397,
+    "annual_mu": 0.14618983781760408
+  },
+  "empirical": {
+    "n": 1507,
+    "mean_daily": 0.0004927166778283817,
+    "sd_daily": 0.013221325668005443,
+    "annualized_volatility": 0.20988203832082397,
+    "excess_kurtosis_excel_KURT": 14.68248801345008,
+    "abs_z_gt_3_count": 24,
+    "abs_z_gt_3_share": 0.015925680159256803,
+    "acf": [
+      {
+        "lag": 1,
+        "return": -0.16958863547703648,
+        "absolute": 0.379974404877397,
+        "squared": 0.4552206470162057
+      },
+      {
+        "lag": 2,
+        "return": 0.1303010744594972,
+        "absolute": 0.42973255040338876,
+        "squared": 0.47961583159217275
+      },
+      {
+        "lag": 3,
+        "return": -0.04865431688500461,
+        "absolute": 0.3884512384144714,
+        "squared": 0.33220898792499265
+      },
+      {
+        "lag": 4,
+        "return": -0.0705171643346355,
+        "absolute": 0.37679484714082506,
+        "squared": 0.31458120712994386
+      },
+      {
+        "lag": 5,
+        "return": 0.06931659025205021,
+        "absolute": 0.3529141825703098,
+        "squared": 0.2915609909008228
+      },
+      {
+        "lag": 6,
+        "return": -0.130961612550933,
+        "absolute": 0.34272856082651637,
+        "squared": 0.32994597939817133
+      },
+      {
+        "lag": 7,
+        "return": 0.15797671753673698,
+        "absolute": 0.3136492259720042,
+        "squared": 0.24475514890395522
+      },
+      {
+        "lag": 8,
+        "return": -0.12937957543296882,
+        "absolute": 0.3349246439198219,
+        "squared": 0.29658762359518387
+      },
+      {
+        "lag": 9,
+        "return": 0.16664072786030812,
+        "absolute": 0.3063061968329462,
+        "squared": 0.22551855051433614
+      },
+      {
+        "lag": 10,
+        "return": -0.060754527618686376,
+        "absolute": 0.2926771335836853,
+        "squared": 0.21459743344651983
+      },
+      {
+        "lag": 11,
+        "return": 0.015260310525057426,
+        "absolute": 0.2683171970739314,
+        "squared": 0.18007461872048414
+      },
+      {
+        "lag": 12,
+        "return": 0.020174541526527194,
+        "absolute": 0.21442094590985622,
+        "squared": 0.1433448164841333
+      },
+      {
+        "lag": 13,
+        "return": -0.08417651643544619,
+        "absolute": 0.2551759290403141,
+        "squared": 0.13663205284399615
+      },
+      {
+        "lag": 14,
+        "return": 0.07694097916861575,
+        "absolute": 0.20309365707224,
+        "squared": 0.12694116041071796
+      },
+      {
+        "lag": 15,
+        "return": -0.09503122139339415,
+        "absolute": 0.2094244256859613,
+        "squared": 0.16473431477038886
+      },
+      {
+        "lag": 16,
+        "return": 0.06191272263488976,
+        "absolute": 0.206059060462948,
+        "squared": 0.10595708155906508
+      },
+      {
+        "lag": 17,
+        "return": -0.05547132635723618,
+        "absolute": 0.186374423344511,
+        "squared": 0.11596027636625875
+      },
+      {
+        "lag": 18,
+        "return": 0.04093355701083282,
+        "absolute": 0.15920564878032645,
+        "squared": 0.07228226636323488
+      },
+      {
+        "lag": 19,
+        "return": -0.0051779590927148065,
+        "absolute": 0.1445498552868371,
+        "squared": 0.04808071300141628
+      },
+      {
+        "lag": 20,
+        "return": -0.00909002903295409,
+        "absolute": 0.18265045694132945,
+        "squared": 0.08586017701498665
+      }
+    ]
+  },
+  "gbm": {
+    "n": 1507,
+    "mean_daily": 0.0005958429770678157,
+    "sd_daily": 0.012972539982479861,
+    "annualized_volatility": 0.2059326879989035,
+    "excess_kurtosis_excel_KURT": -0.08766650762800587,
+    "abs_z_gt_3_count": 2,
+    "abs_z_gt_3_share": 0.0013271400132714001,
+    "acf": [
+      {
+        "lag": 1,
+        "return": -0.02358589403793882,
+        "absolute": -0.011057169196542291,
+        "squared": -0.010213574009933174
+      },
+      {
+        "lag": 2,
+        "return": -0.041635224312039795,
+        "absolute": 0.01467234008916242,
+        "squared": 0.02083214606226658
+      },
+      {
+        "lag": 3,
+        "return": 0.02860522284323577,
+        "absolute": -0.024992935520782137,
+        "squared": -0.017290130503437248
+      },
+      {
+        "lag": 4,
+        "return": -0.01270880300332436,
+        "absolute": 0.026480544040385887,
+        "squared": 0.01576420339071389
+      },
+      {
+        "lag": 5,
+        "return": -0.02839729387644366,
+        "absolute": 0.048910546330719784,
+        "squared": 0.04823275138498842
+      },
+      {
+        "lag": 6,
+        "return": 0.013855110089538398,
+        "absolute": -0.015458645312543639,
+        "squared": -0.006888906537679645
+      },
+      {
+        "lag": 7,
+        "return": -0.015083590801367622,
+        "absolute": -0.04940638635424223,
+        "squared": -0.049235461994563606
+      },
+      {
+        "lag": 8,
+        "return": -0.010504335576835562,
+        "absolute": 0.0034244696076602,
+        "squared": 0.01600022767998657
+      },
+      {
+        "lag": 9,
+        "return": 0.009810434402755827,
+        "absolute": -0.02532938999199045,
+        "squared": -0.024529173824962284
+      },
+      {
+        "lag": 10,
+        "return": 0.021414092264281245,
+        "absolute": 0.025292073033887707,
+        "squared": 0.025066141709182945
+      },
+      {
+        "lag": 11,
+        "return": 0.027972267974586528,
+        "absolute": -0.031496031805127334,
+        "squared": -0.04543275323875424
+      },
+      {
+        "lag": 12,
+        "return": -0.045980843587222875,
+        "absolute": 0.014383318080139906,
+        "squared": 0.029890598784876977
+      },
+      {
+        "lag": 13,
+        "return": -0.005189525752056308,
+        "absolute": 0.016866107393687317,
+        "squared": -1.0945672905124248e-05
+      },
+      {
+        "lag": 14,
+        "return": 0.015115001253512486,
+        "absolute": -0.027001338616372217,
+        "squared": -0.0110844429693837
+      },
+      {
+        "lag": 15,
+        "return": -0.0047210776056029686,
+        "absolute": 0.016478575923792746,
+        "squared": 0.0349339472875143
+      },
+      {
+        "lag": 16,
+        "return": 0.01679454985461243,
+        "absolute": -0.005159962090907154,
+        "squared": -0.006302009788860976
+      },
+      {
+        "lag": 17,
+        "return": -0.005092001441428688,
+        "absolute": 0.044321947946646206,
+        "squared": 0.03657757447148634
+      },
+      {
+        "lag": 18,
+        "return": -0.015121422065851065,
+        "absolute": 0.0010791854446338413,
+        "squared": 0.013164388443635567
+      },
+      {
+        "lag": 19,
+        "return": 0.013195203344864605,
+        "absolute": -0.031288308929324646,
+        "squared": -0.036047043917791885
+      },
+      {
+        "lag": 20,
+        "return": 0.029729355267371107,
+        "absolute": -0.035262830399559665,
+        "squared": -0.041921545944667106
+      }
+    ]
+  },
+  "histogram": {
+    "empirical": [
+      {
+        "lower": -1000000000.0,
+        "upper": -8,
+        "count": 1,
+        "share": 0.0006635700066357001
+      },
+      {
+        "lower": -8,
+        "upper": -5,
+        "count": 2,
+        "share": 0.0013271400132714001
+      },
+      {
+        "lower": -5,
+        "upper": -4,
+        "count": 3,
+        "share": 0.0019907100199071004
+      },
+      {
+        "lower": -4,
+        "upper": -3,
+        "count": 8,
+        "share": 0.0053085600530856005
+      },
+      {
+        "lower": -3,
+        "upper": -2,
+        "count": 28,
+        "share": 0.0185799601857996
+      },
+      {
+        "lower": -2,
+        "upper": -1,
+        "count": 105,
+        "share": 0.0696748506967485
+      },
+      {
+        "lower": -1,
+        "upper": 0,
+        "count": 574,
+        "share": 0.38088918380889186
+      },
+      {
+        "lower": 0,
+        "upper": 1,
+        "count": 640,
+        "share": 0.42468480424684807
+      },
+      {
+        "lower": 1,
+        "upper": 2,
+        "count": 126,
+        "share": 0.0836098208360982
+      },
+      {
+        "lower": 2,
+        "upper": 3,
+        "count": 10,
+        "share": 0.006635700066357001
+      },
+      {
+        "lower": 3,
+        "upper": 4,
+        "count": 3,
+        "share": 0.0019907100199071004
+      },
+      {
+        "lower": 4,
+        "upper": 5,
+        "count": 3,
+        "share": 0.0019907100199071004
+      },
+      {
+        "lower": 5,
+        "upper": 8,
+        "count": 4,
+        "share": 0.0026542800265428003
+      },
+      {
+        "lower": 8,
+        "upper": 1000000000.0,
+        "count": 0,
+        "share": 0.0
+      }
+    ],
+    "gbm": [
+      {
+        "lower": -1000000000.0,
+        "upper": -8,
+        "count": 0,
+        "share": 0.0
+      },
+      {
+        "lower": -8,
+        "upper": -5,
+        "count": 0,
+        "share": 0.0
+      },
+      {
+        "lower": -5,
+        "upper": -4,
+        "count": 0,
+        "share": 0.0
+      },
+      {
+        "lower": -4,
+        "upper": -3,
+        "count": 1,
+        "share": 0.0006635700066357001
+      },
+      {
+        "lower": -3,
+        "upper": -2,
+        "count": 34,
+        "share": 0.0225613802256138
+      },
+      {
+        "lower": -2,
+        "upper": -1,
+        "count": 209,
+        "share": 0.1386861313868613
+      },
+      {
+        "lower": -1,
+        "upper": 0,
+        "count": 512,
+        "share": 0.33974784339747843
+      },
+      {
+        "lower": 0,
+        "upper": 1,
+        "count": 521,
+        "share": 0.34571997345719974
+      },
+      {
+        "lower": 1,
+        "upper": 2,
+        "count": 189,
+        "share": 0.12541473125414732
+      },
+      {
+        "lower": 2,
+        "upper": 3,
+        "count": 40,
+        "share": 0.026542800265428004
+      },
+      {
+        "lower": 3,
+        "upper": 4,
+        "count": 1,
+        "share": 0.0006635700066357001
+      },
+      {
+        "lower": 4,
+        "upper": 5,
+        "count": 0,
+        "share": 0.0
+      },
+      {
+        "lower": 5,
+        "upper": 8,
+        "count": 0,
+        "share": 0.0
+      },
+      {
+        "lower": 8,
+        "upper": 1000000000.0,
+        "count": 0,
+        "share": 0.0
+      }
+    ]
+  },
+  "limits": "One interval and one seeded Gaussian realization. Excess kurtosis and sample autocorrelations are descriptive, not proof or investment forecasts. ACF uses Pearson correlation of paired lagged subsamples."
+}

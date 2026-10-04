@@ -1,0 +1,1464 @@
+{
+  "schema_version": 2,
+  "title": "실제 수익률과 시뮬레이션을 한 가지씩 검증하기",
+  "subtitle": "같은 데이터 → 그림 → 수치 → 가정 확인 → 한 문장 결론",
+  "audience": "신한 시뮬레이션 입문 교육 · Excel과 Claude 병행",
+  "status": "수업용 실습 설계. 아래 검산값은 인공 예제이며 실제 신한·시장 데이터 분석 결과가 아님.",
+  "core_minutes": 100,
+  "total_course_minutes": 300,
+  "integration_note": "총 300분을 앞 180분(π 30 + GBM 30 + 통계실습 100 + 휴식 20), 뒤 120분(Life 25 + 투자자 ABM 45 + 연결·정리 30 + 휴식 20)으로 구성한다. 통계는 주요 단계이며 Hill과 POT/GPD까지 본과정에서 수행한다. 세부 수식·추가 보정·검산은 접이식 심화 자료로 남긴다.",
+  "core_route": [
+    {
+      "lab": "prep",
+      "minutes": 5
+    },
+    {
+      "lab": "normality",
+      "minutes": 15,
+      "scope": "히스토그램·QQ·JB와 한계"
+    },
+    {
+      "lab": "normal-vs-t",
+      "minutes": 15,
+      "scope": "MLE·AIC 실제 계산"
+    },
+    {
+      "lab": "returns-acf",
+      "minutes": 12,
+      "scope": "수익률 ACF·Ljung–Box"
+    },
+    {
+      "lab": "volatility",
+      "minutes": 13,
+      "scope": "절대·제곱 ACF·ARCH-LM"
+    },
+    {
+      "lab": "tails",
+      "minutes": 20,
+      "scope": "3σ·분위수·Hill k 민감도"
+    },
+    {
+      "lab": "pot-gpd",
+      "minutes": 20,
+      "scope": "문턱 초과량·GPD 적합·QQ·생존함수"
+    }
+  ],
+  "common_rules": [
+    "실제·시뮬레이션에 동일한 빈도, 수익률 정의, 관측수, 표본 구간 규칙과 통계량 정의를 적용한다. 가격 수준의 모양을 수익률 분포와 혼동하지 않는다.",
+    "본 실습은 기본적으로 무조건부 수익률을 진단한다. GARCH 등의 조건부 분포를 검증하려면 별도로 추정한 평균·변동성으로 표준화한 잔차를 검사한다.",
+    "표본 252개는 조작을 배우기 위한 예시다. 1% 꼬리는 약 2.5개 관측에 기대므로 불안정하며, 장기 자료도 구조변화를 섞을 수 있다. 표본 수를 늘리는 것만으로 모든 문제가 해결되지는 않는다.",
+    "유의수준 5%와 확인할 lag 10을 데이터를 보기 전에 정한다. lag 20은 사전 지정한 민감도 확인으로만 쓴다. 여러 종목·기간·lag를 살펴 가장 작은 p값만 보고하지 않는다.",
+    "그래프의 차이는 기술적 관찰이다. 고전 검정의 p값은 독립성·정상성·모멘트 등의 가정을 확인한 뒤 제한적으로 해석한다. 이분산·변동성 군집이 강하면 단순 IID 기준 p값을 확정적인 증거로 쓰지 않는다.",
+    "정규성 기각은 t분포 확인이 아니다. AIC는 두 후보 간 상대적 적합도이며 검정의 p값이 아니다. 자기상관이 작다는 것은 독립이라는 뜻이 아니다.",
+    "수업은 공개 또는 교육용으로 승인된 데이터만 Claude에 넣는다. 고객·거래·계좌·내부 기밀 데이터는 업로드하지 않는다.",
+    "Excel RAND()는 재계산할 때 바뀐다. 모의 수익률은 값 붙여넣기로 고정하고 생성 방법·파라미터·생성 시점 또는 seed를 기록한다.",
+    "Hill과 GPD는 본과정에 포함한다. 다만 실행 자체와 신뢰할 수 있는 실제 꼬리 추론을 분리한다. 데이터가 짧으면 합성 예제로 계산법을 수행하고 실제 자료의 불확실성을 명시한다."
+  ],
+  "workbook_contract": {
+    "example": "253개 가격 → 252개 일별 로그수익률. Data 시트는 실제 데이터, SimData 시트는 모의 데이터. 각 분석 시트를 복제하여 Data 참조를 SimData로 바꾼다.",
+    "columns": [
+      {
+        "range": "A2:A254",
+        "meaning": "오름차순 실제 거래일 또는 모의 거래순서"
+      },
+      {
+        "range": "B2:B254",
+        "meaning": "양수인 동일 기준 가격. 주식이면 분할·배당 조정 여부를 기록한다."
+      },
+      {
+        "range": "C3:C254",
+        "meaning": "로그수익률 r_t = LN(P_t/P_(t-1)), 소수 단위"
+      },
+      {
+        "range": "D3:D254",
+        "meaning": "전체 평균을 뺀 수익률 u_t"
+      },
+      {
+        "range": "E3:E254",
+        "meaning": "ABS(u_t), 평균조정 절대수익률"
+      },
+      {
+        "range": "F3:F254",
+        "meaning": "u_t^2, 평균조정 제곱수익률"
+      },
+      {
+        "range": "G3:G254",
+        "meaning": "z_t = u_t / STDEV.P(r), 표본 내 표준화"
+      }
+    ],
+    "adaptation": "실제 n이 252가 아니면 모든 C3:C254 등 끝행을 같은 n+2로 바꾼다. 결측을 0으로 채우지 않는다. 짝이 없는 날짜를 무작정 삭제해 여러 날 수익률을 하루 수익률로 만들지 않는다. 검정 전에 정렬·중복·연속 관측구간을 확인한다.",
+    "excel_compatibility": "아래 수식은 영문 함수명·쉼표 구분 기준이다. 지역 설정에 따라 구분자가 세미콜론일 수 있다. Microsoft 365/Excel 2021 이상 권장. 구버전 LINEST는 배열수식 입력이 필요할 수 있다.",
+    "long_tail_sample": "셀 주소는 따라 치기 쉬운 n=252 예시다. Hill/GPD의 본과정 계산은 충분히 긴 공개·교육용 수익률(예: 2,500~5,000개) 또는 생성규칙이 알려진 합성 꼬리 표본을 별도로 준비해 수행한다. 긴 표본에서도 정밀도 보장은 없고 구조변화·군집·초과개수를 확인한다. 252개 자료만 있으면 실제 자료의 추정은 불안정하다고 표시하고, 계산 학습은 명확히 라벨링한 합성 표본으로 진행한다."
+  },
+  "sources": [
+    {
+      "id": "nist-qq",
+      "title": "NIST · Normal Probability Plot",
+      "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "scipy-jb",
+      "title": "SciPy · Jarque–Bera",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.jarque_bera.html",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "scipy-t",
+      "title": "SciPy · Student t location–scale distribution",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.t.html",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "r-aic",
+      "title": "R stats · AIC",
+      "url": "https://stat.ethz.ch/R-manual/R-devel/library/stats/html/AIC.html",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "nist-lb",
+      "title": "NIST · Ljung–Box test",
+      "url": "https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/ljungbox.htm",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "sm-lb",
+      "title": "statsmodels · acorr_ljungbox",
+      "url": "https://www.statsmodels.org/stable/generated/statsmodels.stats.diagnostic.acorr_ljungbox.html",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "sm-arch",
+      "title": "statsmodels · Engle ARCH test",
+      "url": "https://www.statsmodels.org/stable/generated/statsmodels.stats.diagnostic.het_arch.html",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "nist-ks",
+      "title": "NIST · 추정된 모수와 KS 검정의 한계",
+      "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda35g.htm",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "scipy-gof",
+      "title": "SciPy · 재추정을 포함하는 Monte Carlo 적합도 검정",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.goodness_of_fit.html",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "ms-linest",
+      "title": "Microsoft · LINEST 회귀 통계량",
+      "url": "https://support.microsoft.com/ko-kr/excel/functions/linest-function",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "ms-gammaln",
+      "title": "Microsoft · GAMMALN.PRECISE",
+      "url": "https://support.microsoft.com/en-us/office/gammaln-precise-function-5cdfe601-4e1e-4189-9d74-241ef1caa599",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "nist-normal",
+      "title": "NIST · Normal Distribution",
+      "url": "https://www.itl.nist.gov/div898/handbook/eda/section3/eda3661.htm",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "hill-original",
+      "title": "Hill (1975) · A Simple General Approach to Inference About the Tail of a Distribution",
+      "url": "https://doi.org/10.1214/aos/1176343247",
+      "accessed": "2026-10-03",
+      "type": "공식 문서 또는 원논문"
+    },
+    {
+      "id": "scipy-gpd",
+      "title": "SciPy · Generalized Pareto distribution",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.genpareto.html",
+      "accessed": "2026-10-03",
+      "type": "공식 문서"
+    },
+    {
+      "id": "nist-pot",
+      "title": "NIST · Peaks Over Threshold Plot",
+      "url": "https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/pot_plot.htm",
+      "accessed": "2026-10-03",
+      "type": "공식 문서"
+    },
+    {
+      "id": "nist-gpd-original",
+      "title": "Simiu & Heckert (1995), NIST · Extreme Distribution Tails: A Peaks Over Threshold Approach",
+      "url": "https://www.nist.gov/publications/extreme-distribution-tails-peaks-over-threshold-approach",
+      "accessed": "2026-10-03",
+      "type": "원연구·공식 문서"
+    }
+  ],
+  "labs": [
+    {
+      "id": "prep",
+      "number": 0,
+      "title": "준비 · 비교가 가능한 수익률 만들기",
+      "track": "본과정 5분",
+      "question": "같은 1일 수익률 252개를 비교하고 있는가?",
+      "h0": null,
+      "statistic": "n, 평균, 표준편차, 중복·결측 개수. 검정이 아니라 데이터 품질 확인이다.",
+      "graphs": [
+        {
+          "title": "가격과 수익률의 시간순 그래프",
+          "x": "거래일 / 모의 순서",
+          "y": "가격과 로그수익률을 별도 패널",
+          "read": "가격 추세와 수익률 변동을 분리한다. 큰 변동은 오류인지 실제 사건인지 먼저 확인한다."
+        }
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "입력과 기준 고정",
+          "action": "Data!A2:B254에 날짜와 가격을 붙여넣고 날짜 오름차순·양수가격·253행인지 확인한다. 자산명, 데이터 출처, 기간, 조정가격 여부를 메모한다.",
+          "check": "날짜 중복 0개; 가격 0 이하 0개; 거래일 빈도 일치."
+        },
+        {
+          "number": 2,
+          "title": "수익률 한 칸부터 계산",
+          "action": "Data!C3에 =LN(B3/B2)를 입력하고 C254까지 채운다. 0.01은 약 1%라는 단위를 적는다.",
+          "check": "100 → 101은 0.00995033. 표시 형식만 %로 바꾸고 값에 다시 100을 곱하지 않는다."
+        },
+        {
+          "number": 3,
+          "title": "파생 열 생성",
+          "action": "J2:J5 요약 셀을 만든 뒤 D:G 열을 채운다. D열 평균은 반올림 오차를 제외하면 0이다.",
+          "check": "COUNT(C3:C254)=252; J4>0. 모든 값이 같으면 검정 중단."
+        },
+        {
+          "number": 4,
+          "title": "동일 길이 모의 표본 고정",
+          "action": "SimData를 동일 구조로 만든다. 기존 시뮬레이션 수익률을 값으로 복사하거나 같은 평균·표준편차의 IID 정규 기준선을 만든다. 고정된 한 표본을 모든 실습에 사용한다.",
+          "check": "실제와 모의 모두 n=252. 모의 생성 규칙·파라미터·재현 정보가 기록됨."
+        },
+        {
+          "number": 5,
+          "title": "한 장 제출",
+          "action": "실제와 모의의 n·평균·표준편차를 나란히 적고 가격·수익률 시계열을 그린다.",
+          "check": "실제 데이터 없이 예제만 쓴 경우 화면에 인공 예제라고 표시한다."
+        }
+      ],
+      "excel": {
+        "sheet": "Data; 복제본 SimData",
+        "cells": [
+          {
+            "cell": "J2",
+            "formula": "=COUNT(C3:C254)",
+            "meaning": "관측수 n"
+          },
+          {
+            "cell": "J3",
+            "formula": "=AVERAGE(C3:C254)",
+            "meaning": "평균 μ"
+          },
+          {
+            "cell": "J4",
+            "formula": "=STDEV.P(C3:C254)",
+            "meaning": "σ_MLE, 분모 n; QQ·우도·표본 내 z에 사용"
+          },
+          {
+            "cell": "J5",
+            "formula": "=STDEV.S(C3:C254)",
+            "meaning": "표본 표준편차, 분모 n−1; 참고용"
+          },
+          {
+            "cell": "C3",
+            "formula": "=LN(B3/B2)",
+            "meaning": "C254까지 채우기"
+          },
+          {
+            "cell": "D3",
+            "formula": "=C3-$J$3",
+            "meaning": "D254까지"
+          },
+          {
+            "cell": "E3",
+            "formula": "=ABS(D3)",
+            "meaning": "E254까지"
+          },
+          {
+            "cell": "F3",
+            "formula": "=D3^2",
+            "meaning": "F254까지"
+          },
+          {
+            "cell": "G3",
+            "formula": "=D3/$J$4",
+            "meaning": "G254까지"
+          },
+          {
+            "cell": "SimData!C3",
+            "formula": "=Data!$J$3+Data!$J$4*NORM.S.INV(MAX(1E-12,MIN(1-1E-12,RAND())))",
+            "meaning": "선택: IID 정규 비교선. C254까지 채운 뒤 값 붙여넣기"
+          }
+        ],
+        "note": "SimData에 수익률 C열을 직접 넣었다면 B열은 없어도 이후 검정에 문제없다. 필요하면 B2=100, B3=B2*EXP(C3)로 가격을 복원한다."
+      },
+      "claude_prompt": "공개·교육용으로 허용된 date, price 또는 return 표를 제공한다. 먼저 데이터 출처·빈도·수익률 단위·조정가격·정렬·중복·결측을 확인하고 이상이 있으면 분석 전 알려줘. 원본 날짜 순서를 유지한 로그수익률을 만들고 n, 평균, STDEV.P와 STDEV.S를 구분해 출력해줘. 실제와 모의의 길이와 정의가 다르면 임의로 맞추지 말고 차이를 설명해줘. 결과를 숫자로 만들기 전에 사용할 열과 계산식을 보여줘.",
+      "interpretation": "평균·표준편차를 맞췄다고 분포의 꼬리나 시간 의존성까지 맞춘 것은 아니다. 다음 실습에서 그 차이를 하나씩 확인한다.",
+      "caveats": [
+        "겹치는 5일 수익률은 인위적인 자기상관을 만들 수 있다. 이번 실습은 비중첩 1일 수익률이다.",
+        "실제 표본으로 평균·표준편차를 맞춘 모의 표본은 보정에 쓴 자료의 재현 점검이다. 별도 기간의 예측 검증과 다르다.",
+        "주가수익률의 경험적 특징을 금리 수준·호가·거래량에 그대로 일반화하지 않는다."
+      ],
+      "toy_validation": {
+        "input_prices": [
+          100,
+          101,
+          100
+        ],
+        "expected_log_returns": [
+          0.009950330853168092,
+          -0.009950330853168092
+        ],
+        "check": "두 로그수익률 합=0, 최종 가격=초기 가격. 1%와 −1%의 단순수익률이라고 계산하면 틀린다."
+      },
+      "sources": [
+        "nist-normal"
+      ]
+    },
+    {
+      "id": "normality",
+      "number": 1,
+      "title": "정규분포인가? · 히스토그램 → QQ → JB",
+      "track": "본과정 15분",
+      "question": "종 모양처럼 보여도 양쪽 꼬리는 정규분포와 같은가?",
+      "h0": "JB: 표준적인 IID 정규 표본이라는 귀무모형 아래 왜도 0, 첨도 3의 일치 여부를 본다. 이 두 모멘트의 일치만으로 정규성이 증명되지는 않는다.",
+      "statistic": "m_j = (1/n)Σ(r_t−평균)^j; S=m3/m2^(3/2); K=m4/m2^2; JB=n/6×[S²+(K−3)²/4]. 큰 표본의 IID 정규 귀무모형에서 근사 χ²(2).",
+      "graphs": [
+        {
+          "title": "같은 구간의 히스토그램",
+          "x": "로그수익률",
+          "y": "상대빈도 또는 밀도",
+          "read": "실제·모의를 같은 bin 경계와 x축으로 비교. 빈도에 PDF를 바로 겹치지 말고 밀도로 변환하거나 기대도수 n×bin폭×PDF를 쓴다."
+        },
+        {
+          "title": "정규 QQ",
+          "x": "NORM.S.INV((i−0.5)/n)",
+          "y": "오름차순 수익률",
+          "read": "기준선 y=μ+σx. 무거운 양쪽 꼬리는 왼쪽 점들이 선 아래, 오른쪽 점들이 선 위로 벌어질 수 있다. 중앙만 보지 않는다."
+        }
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "먼저 예측",
+          "action": "실제·모의 중 어느 쪽의 꼬리가 더 두꺼울지 한 문장 적고 히스토그램을 같은 bin 20개로 그린다.",
+          "check": "그림의 축·bin이 동일한가?"
+        },
+        {
+          "number": 2,
+          "title": "QQ 전용 사본",
+          "action": "QQ 시트 A2:A253에 1~252, B열에 SMALL로 정렬된 수익률을 만든다. 원본 C열은 정렬하지 않는다.",
+          "check": "B2=최솟값, B253=최댓값; 원본 날짜 순서 유지."
+        },
+        {
+          "number": 3,
+          "title": "이론 분위수와 기준선",
+          "action": "C열 p=(i−0.5)/n, D열 정규 분위수, E열 기준선을 만든다. D를 x, B를 y로 산점도 그리고 D/E 기준선을 추가한다.",
+          "check": "p가 0이나 1이 아니므로 NORM.S.INV 오류가 없다."
+        },
+        {
+          "number": 4,
+          "title": "양쪽 끝을 읽기",
+          "action": "실제와 모의에서 각각 가장 작은 5개·가장 큰 5개 점이 기준선 위/아래 어디에 놓이는지 적는다.",
+          "check": "중앙·왼쪽 꼬리·오른쪽 꼬리 3개 관찰문을 제출한다."
+        },
+        {
+          "number": 5,
+          "title": "JB를 직접 조립",
+          "action": "JB 시트에 중심적률을 구한 뒤 왜도, 첨도, JB와 χ² 근사 p값을 계산한다. Excel SKEW·KURT를 그대로 대입하지 않는다.",
+          "check": "K는 비초과 첨도다. K−3을 정확히 한 번만 계산한다."
+        },
+        {
+          "number": 6,
+          "title": "결론을 제한하기",
+          "action": "그림과 수치를 함께 보고 “정규분포와의 차이가 특히 __에 보인다 / 뚜렷하지 않다”로 작성한다.",
+          "check": "p≥0.05이면 “정규분포임을 확인했다”가 아니라 “이 검정에서 기각하지 못했다”."
+        }
+      ],
+      "excel": {
+        "sheet": "QQ, JB",
+        "cells": [
+          {
+            "cell": "QQ!A2",
+            "formula": "=ROW()-1",
+            "meaning": "A253까지 순위 i"
+          },
+          {
+            "cell": "QQ!B2",
+            "formula": "=SMALL(Data!$C$3:$C$254,A2)",
+            "meaning": "B253까지"
+          },
+          {
+            "cell": "QQ!C2",
+            "formula": "=(A2-0.5)/Data!$J$2",
+            "meaning": "C253까지"
+          },
+          {
+            "cell": "QQ!D2",
+            "formula": "=NORM.S.INV(C2)",
+            "meaning": "D253까지"
+          },
+          {
+            "cell": "QQ!E2",
+            "formula": "=Data!$J$3+Data!$J$4*D2",
+            "meaning": "E253까지 기준선"
+          },
+          {
+            "cell": "JB!B2",
+            "formula": "=Data!J2",
+            "meaning": "n"
+          },
+          {
+            "cell": "JB!B3",
+            "formula": "=SUMPRODUCT(Data!D3:D254,Data!D3:D254)/B2",
+            "meaning": "m2"
+          },
+          {
+            "cell": "JB!B4",
+            "formula": "=SUMPRODUCT(Data!D3:D254,Data!D3:D254,Data!D3:D254)/B2",
+            "meaning": "m3"
+          },
+          {
+            "cell": "JB!B5",
+            "formula": "=SUMPRODUCT(Data!F3:F254,Data!F3:F254)/B2",
+            "meaning": "m4"
+          },
+          {
+            "cell": "JB!B6",
+            "formula": "=B4/B3^1.5",
+            "meaning": "S, 비보정 왜도"
+          },
+          {
+            "cell": "JB!B7",
+            "formula": "=B5/B3^2",
+            "meaning": "K, 비초과 첨도"
+          },
+          {
+            "cell": "JB!B8",
+            "formula": "=B2/6*(B6^2+(B7-3)^2/4)",
+            "meaning": "JB"
+          },
+          {
+            "cell": "JB!B9",
+            "formula": "=CHISQ.DIST.RT(B8,2)",
+            "meaning": "IID 큰 표본 기준 근사 p값"
+          }
+        ],
+        "note": "QQ plotting position은 수업용 (i−0.5)/n을 사용한다. NIST의 Filliben 방식 등 다른 관행과 끝점이 조금 다를 수 있으므로 실제와 모의에 동일 관행을 적용한다."
+      },
+      "claude_prompt": "제공한 실제·모의 수익률 각각의 원본 시간순서를 보존하고, QQ용 사본만 정렬해줘. 같은 bin 히스토그램과 x=정규 이론 분위수, y=표본 분위수인 QQ를 작성해줘. plotting position은 (i−0.5)/n, 기준선은 평균+STDEV.P×x로 통일해줘. 비보정 중심적률로 S,K,JB를 직접 계산하고 scipy.stats.jarque_bera와 대조해줘. n=252처럼 짧으면 χ² 근사 p값의 한계를 표시하고, 독립 정규 가정에서의 Monte Carlo 보정과 실제 시계열 의존성 문제를 구분해줘. 정규성 기각을 t분포 채택으로 쓰지 말고, 그래프의 꼬리·비대칭과 함께 한 문장 결론을 써줘.",
+      "interpretation": "JB가 크면 정규모형과 양립하기 어려운 왜도·첨도 구조일 수 있다. QQ는 어느 꼬리에서 어긋나는지를 보여준다. 둘의 역할이 다르다.",
+      "caveats": [
+        "SciPy는 JB의 χ² 근사를 큰 표본(문서상 2,000 초과)에서 사용할 것을 경고한다. 252일 p값은 학습용 참고치다. IID 가정이 적절할 때만 동일 n의 정규 표본으로 통계량 분포를 재현해 Monte Carlo p값을 구한다.",
+        "변동성 군집이 있으면 독립 정규 Monte Carlo만으로 시계열 의존성까지 보정되지 않는다. 적절한 조건부 귀무모형·의존성 보정이 추가로 필요하다.",
+        "표본이 매우 크면 작은 이탈도 유의할 수 있다. 효과 크기와 꼬리 위험상 의미를 함께 쓴다.",
+        "Excel KURT는 보정된 초과첨도이고 SKEW는 보정된 왜도다. 여기의 비보정 중심적률 정의와 섞지 않는다."
+      ],
+      "toy_validation": {
+        "purpose": "수식 검산 전용; 5개 자료로 유효한 정규성 추론을 하지 않는다.",
+        "returns": [
+          -2,
+          -1,
+          0,
+          1,
+          2
+        ],
+        "n": 5,
+        "mean": 0,
+        "m2": 2,
+        "m3": 0,
+        "m4": 6.8,
+        "S": 0,
+        "K": 1.7,
+        "JB": 0.35208333333333336,
+        "asymptotic_p_for_arithmetic_only": 0.8385830416490585,
+        "qq_x": [
+          -1.2815515655,
+          -0.5244005127,
+          0,
+          0.5244005127,
+          1.2815515655
+        ]
+      },
+      "sources": [
+        "nist-qq",
+        "scipy-jb"
+      ]
+    },
+    {
+      "id": "normal-vs-t",
+      "number": 2,
+      "title": "정규 vs Student t · 같은 자료에 MLE와 AIC",
+      "track": "본과정 15분",
+      "question": "꼬리를 허용하는 t모형은 추가 파라미터의 비용을 감수할 만큼 잘 맞는가?",
+      "h0": null,
+      "hypothesis_note": "AIC는 H0를 기각하는 유의성 검정이 아니다. 두 후보 모형의 상대 비교이며 p값을 만들지 않는다.",
+      "statistic": "정규 k=2(μ,σ), location–scale t k=3(μ,s,ν). 각각 최대화한 logL로 AIC=2k−2logL, ΔAIC=AIC_normal−AIC_t. 양수면 이 비교에서 t의 AIC가 작다.",
+      "graphs": [
+        {
+          "title": "같은 히스토그램 위 두 적합 밀도",
+          "x": "동일 로그수익률",
+          "y": "확률밀도",
+          "read": "중앙과 꼬리 적합이 다른지 비교. t의 scale s는 표준편차와 같지 않다."
+        },
+        {
+          "title": "정규 QQ와 t QQ",
+          "x": "적합한 후보 모형의 이론 수익률 분위수",
+          "y": "정렬된 관측 수익률",
+          "read": "y=x와 꼬리 이탈을 비교한다. 후보 간 잔여 부적합이 남을 수 있다."
+        }
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "같은 252개 자료를 고정",
+          "action": "Fit 시트에서 정규 μ=평균, σ=STDEV.P를 사용한다. STDEV.S를 정규 MLE라고 부르지 않는다.",
+          "check": "두 모형의 행·단위·결측 처리 동일."
+        },
+        {
+          "number": 2,
+          "title": "정규 logL 계산",
+          "action": "A3:A254에 원 수익률, B열에 정규 로그밀도를 계산하여 합산한다.",
+          "check": "아주 작은 밀도를 LN으로 바꾸는 대신 로그밀도 공식을 직접 쓴다."
+        },
+        {
+          "number": 3,
+          "title": "t 초기값 입력",
+          "action": "H5=평균, H6=σ*SQRT(3/5), H7=5로 둔다. 여기서는 유한분산 t 후보군 ν≥2.05를 사전에 선택한다.",
+          "check": "ν>2일 때만 표준편차=s*SQRT(ν/(ν−2))."
+        },
+        {
+          "number": 4,
+          "title": "Solver로 logL 최대화",
+          "action": "C열 t 로그밀도 합 H9를 최대화. 변경 셀 H5:H7, 제약 H6≥1E−8, 2.05≤H7≤200. GRG Nonlinear로 풀고 ν 시작값 3,5,10,30을 반복하여 가장 큰 logL를 기록한다. H5에는 음수도 허용한다.",
+          "check": "비제약 변수를 음수가 아닌 값으로 설정 옵션 해제. Solver 결과와 제약 경계 도달 여부 기록."
+        },
+        {
+          "number": 5,
+          "title": "AIC 비교",
+          "action": "정규 AIC=4−2logL, t AIC=6−2logL를 계산하고 작은 쪽을 선택한다. 차이가 작으면 우열이 약하다고 적는다.",
+          "check": "t의 세 파라미터를 모두 셌는가? ΔAIC에 p값을 붙이지 않는다."
+        },
+        {
+          "number": 6,
+          "title": "결론과 추가 확인",
+          "action": "t가 앞서도 t QQ 잔여 이탈과 시간 의존성을 확인한다. 후반부 holdout을 별도로 쓰면 전반부에서만 적합하고 후반부 평균 로그점수를 비교한다.",
+          "check": "전체자료 AIC와 holdout 평가는 목적·추정 구간을 분리해 표기한다."
+        }
+      ],
+      "excel": {
+        "sheet": "Fit",
+        "cells": [
+          {
+            "cell": "H2",
+            "formula": "=Data!J2",
+            "meaning": "n"
+          },
+          {
+            "cell": "H3",
+            "formula": "=Data!J3",
+            "meaning": "정규 μ MLE"
+          },
+          {
+            "cell": "H4",
+            "formula": "=Data!J4",
+            "meaning": "정규 σ MLE"
+          },
+          {
+            "cell": "H5",
+            "formula": "초기값: Data!J3의 숫자를 값으로 붙여넣기",
+            "meaning": "t μ, Solver 변경 셀"
+          },
+          {
+            "cell": "H6",
+            "formula": "초기값: Data!J4*SQRT(3/5)의 숫자",
+            "meaning": "t s>0, Solver 변경 셀"
+          },
+          {
+            "cell": "H7",
+            "formula": "5",
+            "meaning": "t ν, Solver 변경 셀"
+          },
+          {
+            "cell": "A3",
+            "formula": "=Data!C3",
+            "meaning": "A254까지"
+          },
+          {
+            "cell": "B3",
+            "formula": "=-LN($H$4)-0.5*LN(2*PI())-0.5*((A3-$H$3)/$H$4)^2",
+            "meaning": "정규 로그밀도; B254까지"
+          },
+          {
+            "cell": "C3",
+            "formula": "=GAMMALN.PRECISE(($H$7+1)/2)-GAMMALN.PRECISE($H$7/2)-0.5*LN($H$7*PI())-LN($H$6)-(($H$7+1)/2)*LN(1+((A3-$H$5)/$H$6)^2/$H$7)",
+            "meaning": "t 로그밀도; C254까지. ν를 정수로 자르는 함수 회피"
+          },
+          {
+            "cell": "H8",
+            "formula": "=SUM(B3:B254)",
+            "meaning": "정규 최대 logL"
+          },
+          {
+            "cell": "H9",
+            "formula": "=SUM(C3:C254)",
+            "meaning": "Solver가 최대화할 t logL"
+          },
+          {
+            "cell": "H10",
+            "formula": "=4-2*H8",
+            "meaning": "정규 AIC"
+          },
+          {
+            "cell": "H11",
+            "formula": "=6-2*H9",
+            "meaning": "t AIC"
+          },
+          {
+            "cell": "H12",
+            "formula": "=H10-H11",
+            "meaning": "ΔAIC, 양수면 t 상대 우세"
+          }
+        ],
+        "note": "Solver가 없는 환경은 Claude/Python 경로로 연속 ν의 MLE를 계산한다. Excel T.DIST 계열의 자유도 처리와 구버전 TINV의 정수 절삭을 피하려고 연속 ν 로그밀도는 GAMMALN.PRECISE 수식으로 직접 계산한다. t QQ의 이론 분위수는 scipy.stats.t.ppf(p,df=ν,loc=μ,scale=s)로 구해 Excel에 값으로 붙여넣는다."
+      },
+      "claude_prompt": "동일한 실제/모의 수익률마다 정규(μ,σ)와 location–scale Student t(μ,s,ν)를 최대우도로 적합해줘. 정규는 분모 n의 σ를 쓰고 t는 gammaln 기반 연속 ν 로그밀도와 제약 s>0, 2.05≤ν≤200을 사용해줘. scipy.optimize로 여러 초기 ν=3,5,10,30에서 최적화하고 성공 여부·경계 도달·최고 logL를 기록해줘. 정규 k=2, t k=3으로 AIC와 ΔAIC를 계산해줘. 같은 단위와 관측치인지 확인하고 t scale과 표준편차를 구분해줘. 정규·t QQ, 두 밀도와 꼬리 비교를 그리고 AIC는 검정이 아님을 설명해줘. fitted KS의 표준 p값을 보고하지 마. 적합도 검정이 필요하면 각 모의 표본에서 모수를 다시 추정하는 Monte Carlo 절차와 시계열 의존성 한계를 설명해줘.",
+      "interpretation": "“이 표본과 두 후보 내에서는 t의 AIC가 더 작다. 하지만 t가 참이라는 결론도, 수익률의 시계열 구조를 재현한다는 결론도 아니다.”",
+      "caveats": [
+        "정규성을 기각했다고 t를 자동 채택하지 않는다. 비대칭·혼합분포·점프·시간변화 분산도 후보 설명이다.",
+        "ν≥2.05는 수업의 유한분산 비교 제한이다. 일반 Student t는 ν>0이다. ν가 상한 200에 붙으면 정규에 가까운 해일 수 있고 자유도 식별이 약할 수 있다.",
+        "의존적 수익률에 IID 주변밀도의 logL를 합한 AIC는 작업용 비교로 표시한다. 올바른 조건부 우도 모형의 AIC나 의존성을 고려한 검증과 같지 않다.",
+        "동일 자료에서 μ,σ,ν를 추정한 뒤 일반 KS p값을 그대로 쓰면 무효다. 모의 표본마다 재추정한 적합도 보정이 필요하며, IID 보정은 시계열 의존성을 해결하지 않는다.",
+        "ν≤4인 t는 4차 모멘트가 존재하지 않는다. 첨도·제곱수익률 통계의 큰 표본 근사도 취약해질 수 있다."
+      ],
+      "toy_validation": {
+        "purpose": "AIC 계산만 검산하는 가상 최대 로그우도. 실제 데이터의 적합 결과가 아님.",
+        "normal_logL": -100,
+        "t_logL": -95,
+        "normal_k": 2,
+        "t_k": 3,
+        "normal_AIC": 204,
+        "t_AIC": 196,
+        "delta_AIC": 8,
+        "statement": "t의 logL 개선 5가 추가 파라미터 비용 2를 넘어 AIC가 8 작다. 이는 p=0.08이나 8% 확률이라는 의미가 아니다."
+      },
+      "sources": [
+        "scipy-t",
+        "r-aic",
+        "nist-ks",
+        "scipy-gof",
+        "ms-gammaln"
+      ]
+    },
+    {
+      "id": "returns-acf",
+      "number": 3,
+      "title": "방향의 기억 · 수익률 ACF와 Ljung–Box",
+      "track": "본과정 12분",
+      "question": "오늘의 수익률과 과거 수익률 사이에 선형 관계가 남아 있는가?",
+      "h0": "Ljung–Box: 사전 지정한 h=10까지 모집단 자기상관 ρ1=…=ρ10=0. 모든 종류의 의존성이 없다는 귀무가설로 확대 해석하지 않는다.",
+      "statistic": "ACF(k)=Σ_(t=k+1..n)u_t u_(t−k) / Σ_(t=1..n)u_t². Q=n(n+2)Σ_(k=1..h)ACF(k)²/(n−k). 원 수익률 기준 model_df=0이면 χ²(h) 근사.",
+      "graphs": [
+        {
+          "title": "수익률 ACF 1~20",
+          "x": "lag, 거래일 수",
+          "y": "ACF",
+          "read": "IID white-noise 기준 참고선 ±1.96/√n. 각 lag의 개별 근사선이고 동시 95% 구간이 아니다."
+        },
+        {
+          "title": "수익률 lag-1 산점도",
+          "x": "어제 수익률",
+          "y": "오늘 수익률",
+          "read": "선형 패턴과 극단 관측의 영향을 직접 확인한다."
+        }
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "시간순서 확인",
+          "action": "원본 Data!C열을 사용한다. QQ에서 정렬한 수익률을 절대 가져오지 않는다. h=10과 보조 h=20을 먼저 적는다.",
+          "check": "임의 정렬 자료의 ACF는 원 시계열 진단이 아니다."
+        },
+        {
+          "number": 2,
+          "title": "lag 1 손으로",
+          "action": "평균조정 D4:D254와 D3:D253를 곱해 합산하고 전체 D3:D254 제곱합으로 나눈다.",
+          "check": "분모와 평균이 모든 lag에서 동일하다."
+        },
+        {
+          "number": 3,
+          "title": "lag 1~20 표",
+          "action": "ACF 시트 A2:A21에 1~20을 쓰고 아래 수식을 복사한다. 막대와 참고선 두 개를 그린다.",
+          "check": "lag 1이 손계산 값과 일치."
+        },
+        {
+          "number": 4,
+          "title": "전체 검정",
+          "action": "C열에 각 lag의 ACF²/(n−k)를 계산하고 첫 10개 합으로 Q10과 p값을 구한다.",
+          "check": "Q10에 lag 11~20을 섞지 않는다. h=20은 별도 민감도 값이다."
+        },
+        {
+          "number": 5,
+          "title": "실제·모의 비교",
+          "action": "두 ACF 그림을 같은 y축에 놓고 lag 1, Q10, 표본 수를 기록한다.",
+          "check": "p값만 적지 말고 가장 큰 상관의 크기와 lag를 함께 적는다."
+        },
+        {
+          "number": 6,
+          "title": "결론 쓰기",
+          "action": "“1~10일 선형 자기상관에 대한 증거가 __하다. 독립성 여부는 다음 절대·제곱수익률 실습에서 추가 확인한다.”",
+          "check": "비기각을 독립·예측불가능·효율적 시장의 증명으로 쓰지 않는다."
+        }
+      ],
+      "excel": {
+        "sheet": "ACF",
+        "cells": [
+          {
+            "cell": "A2",
+            "formula": "=ROW()-1",
+            "meaning": "A21까지 1~20"
+          },
+          {
+            "cell": "B2",
+            "formula": "=SUMPRODUCT(INDEX(Data!$D$3:$D$254,A2+1):INDEX(Data!$D$3:$D$254,Data!$J$2),INDEX(Data!$D$3:$D$254,1):INDEX(Data!$D$3:$D$254,Data!$J$2-A2))/SUMSQ(Data!$D$3:$D$254)",
+            "meaning": "B21까지 같은 전체 평균·분모의 ACF"
+          },
+          {
+            "cell": "C2",
+            "formula": "=B2^2/(Data!$J$2-A2)",
+            "meaning": "C21까지"
+          },
+          {
+            "cell": "D2",
+            "formula": "=1.96/SQRT(Data!$J$2)",
+            "meaning": "D21까지 위 참고선"
+          },
+          {
+            "cell": "E2",
+            "formula": "=-D2",
+            "meaning": "E21까지 아래 참고선"
+          },
+          {
+            "cell": "H2",
+            "formula": "=Data!$J$2*(Data!$J$2+2)*SUM(C2:C11)",
+            "meaning": "Q10"
+          },
+          {
+            "cell": "H3",
+            "formula": "=CHISQ.DIST.RT(H2,10)",
+            "meaning": "p10, model_df=0"
+          },
+          {
+            "cell": "H4",
+            "formula": "=Data!$J$2*(Data!$J$2+2)*SUM(C2:C21)",
+            "meaning": "Q20 보조"
+          },
+          {
+            "cell": "H5",
+            "formula": "=CHISQ.DIST.RT(H4,20)",
+            "meaning": "p20 보조"
+          }
+        ],
+        "note": "CORREL의 lag별 두 절단 구간은 각각의 평균·표준편차로 재표준화되므로 여기의 표본 ACF와 정확히 같지 않다. 표준 ACF와 Ljung–Box를 맞추려면 위 정의를 일관되게 사용한다."
+      },
+      "claude_prompt": "시간순서가 유지된 수익률에 대해 전체 평균과 전체 제곱합을 사용하는 biased ACF(adjusted=False)를 lag 1~20으로 계산해줘. lag 1을 직접 SUMPRODUCT 방식으로 검산하고 statsmodels.tsa.stattools.acf(fft=False,adjusted=False)와 대조해줘. 사전 지정 h=10의 Ljung–Box를 model_df=0으로 계산하고 statsmodels.stats.diagnostic.acorr_ljungbox(lags=[10,20],model_df=0)와 대조해줘. h=20은 보조 민감도로 표시해줘. ±1.96/√n은 IID 개별 lag 참고선임을 표시하고 이분산·비정상성·다중검정 한계를 설명해줘. 수익률 ACF가 작아도 독립은 아니라는 결론과 다음 절대수익률 검사를 연결해줘.",
+      "interpretation": "p<0.05는 지정한 lag 묶음에서 선형 자기상관의 증거다. p≥0.05는 그 범위에서 검출하지 못했다는 뜻이다. 짧은 표본·작은 효과·변동성 군집을 별도로 고려한다.",
+      "caveats": [
+        "시계열이 약정상이고 검정 근사를 정당화할 모멘트·의존성 조건이 필요하다. 조건부 이분산이 강하면 전통적 Ljung–Box의 χ² 기준이 왜곡될 수 있다.",
+        "ARMA(p,q) 잔차에 적용할 때 model_df=p+q 등 추정 자유도 조정이 필요하다. 원 수익률에 model_df를 임의로 빼지 않는다.",
+        "다수 lag에서 개별 5% 선을 넘어서는 점 하나가 나오는 것은 드물지 않다. 사전 지정한 portmanteau 검정과 전체 패턴을 본다.",
+        "얇은 거래·종가 비동시성·가격 반올림도 자기상관을 유발할 수 있다."
+      ],
+      "toy_validation": {
+        "purpose": "작은 n의 p값은 산술 검산용일 뿐, 추론용이 아니다.",
+        "returns": [
+          -2,
+          -1,
+          0,
+          1,
+          2
+        ],
+        "sum_squared_centered": 10,
+        "acf1_numerator": 4,
+        "acf1": 0.4,
+        "acf2_numerator": -1,
+        "acf2": -0.1,
+        "Q_h2": 1.516666666666667,
+        "chi2_p_h2": 0.4684465209526337,
+        "contrast": "같은 자료의 두 lag-1 절단 벡터 CORREL은 1이지만, 전체 분모 ACF는 0.4다."
+      },
+      "sources": [
+        "nist-lb",
+        "sm-lb"
+      ]
+    },
+    {
+      "id": "volatility",
+      "number": 4,
+      "title": "크기의 기억 · 절대·제곱수익률 ACF와 ARCH-LM",
+      "track": "본과정 13분",
+      "question": "수익률의 방향은 기억이 약해도 큰 변동 뒤에 큰 변동이 이어지는가?",
+      "h0": "ARCH-LM(q=5): 평균방정식 잔차 제곱 회귀에서 lag 1~5의 계수가 모두 0이다. 이는 선택한 ARCH 지연구조에 대한 제한이며 모든 변동성 의존성의 부재를 증명하지 않는다.",
+      "statistic": "u_t=r_t−평균(상수 평균의 수업 기본형). 보조회귀 u_t² = a0+a1 u_(t−1)²+…+aq u_(t−q)²+e_t. n_eff=n−q, LM=n_eff×R², 귀무가설 아래 근사 χ²(q).",
+      "graphs": [
+        {
+          "title": "수익률·절대수익률·제곱수익률 ACF 나란히",
+          "x": "같은 lag 1~20",
+          "y": "ACF",
+          "read": "r에서는 작고 |u| 또는 u²에서는 양의 상관이 지속되는지 비교. u²는 극단값에 더 민감하다."
+        },
+        {
+          "title": "|u_t| 시간순 그래프",
+          "x": "거래일 / 모의 순서",
+          "y": "평균조정 절대수익률",
+          "read": "큰 봉우리들이 특정 기간에 모이는지 살핀다. 눈으로 보인 군집과 검정 결과를 구분한다."
+        }
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "변동 크기 만들기",
+          "action": "Data E열 ABS(u), F열 u²를 사용한다. |u|와 u² 각각 자신의 전체 평균을 빼서 H열·I열에 만든다.",
+          "check": "원 수익률 평균을 다시 빼는 것이 아니다."
+        },
+        {
+          "number": 2,
+          "title": "같은 ACF 코드 재사용",
+          "action": "ACF 수식을 복제해 D 대신 H(절대수익률의 중심화), I(제곱수익률의 중심화)를 참조한다. 세 그림은 같은 lag·y축을 쓴다.",
+          "check": "|u|와 u²의 평균을 뺀 후 전체 제곱합을 분모로 썼는가?"
+        },
+        {
+          "number": 3,
+          "title": "필수 비교문 작성",
+          "action": "수익률 ACF와 절대수익률 ACF의 차이를 실제·모의 각각 적는다.",
+          "check": "IID t는 꼬리가 두꺼워도 이론적으로 변동성 군집을 만들지 않는다."
+        },
+        {
+          "number": 4,
+          "title": "5시차 보조회귀 만들기",
+          "action": "ARCH 시트 A2에 Data!F8(6번째 제곱수익률), B2:F2에 Data!F7, F6, F5, F4, F3를 넣고 247행의 관측까지 아래로 채운다.",
+          "check": "A2:A248은 247행; A248=Data!F254. 모든 X는 그 시점 이전 값."
+        },
+        {
+          "number": 5,
+          "title": "R²와 LM 계산",
+          "action": "상수항을 포함한 LINEST 회귀의 R²를 추출하고 n_eff×R²와 χ²(5) p값을 구한다.",
+          "check": "R²가 0~1, n_eff=247; n=252를 그대로 곱하지 않는다."
+        },
+        {
+          "number": 6,
+          "title": "모형 가정으로 연결",
+          "action": "ARCH가 보이면 다음 모형 실습에서 시간가변 변동성 후보를 고려한다. 정규/t 분포 선택과 변동성 동학 선택을 별개 축으로 적는다.",
+          "check": "조건부 정규 GARCH도 무조건부 꼬리를 두껍게 만들 수 있다. 원 수익률 정규성 기각이 조건부 정규 혁신 기각은 아니다."
+        }
+      ],
+      "excel": {
+        "sheet": "Data, VolACF, ARCH",
+        "cells": [
+          {
+            "cell": "Data!H3",
+            "formula": "=E3-AVERAGE($E$3:$E$254)",
+            "meaning": "H254까지 절대수익률 중심화"
+          },
+          {
+            "cell": "Data!I3",
+            "formula": "=F3-AVERAGE($F$3:$F$254)",
+            "meaning": "I254까지 제곱수익률 중심화"
+          },
+          {
+            "cell": "VolACF!A2",
+            "formula": "=ROW()-1",
+            "meaning": "A21까지"
+          },
+          {
+            "cell": "VolACF!B2",
+            "formula": "=SUMPRODUCT(INDEX(Data!$H$3:$H$254,A2+1):INDEX(Data!$H$3:$H$254,Data!$J$2),INDEX(Data!$H$3:$H$254,1):INDEX(Data!$H$3:$H$254,Data!$J$2-A2))/SUMSQ(Data!$H$3:$H$254)",
+            "meaning": "절대수익률 ACF, B21까지"
+          },
+          {
+            "cell": "VolACF!C2",
+            "formula": "=SUMPRODUCT(INDEX(Data!$I$3:$I$254,A2+1):INDEX(Data!$I$3:$I$254,Data!$J$2),INDEX(Data!$I$3:$I$254,1):INDEX(Data!$I$3:$I$254,Data!$J$2-A2))/SUMSQ(Data!$I$3:$I$254)",
+            "meaning": "제곱수익률 ACF, C21까지"
+          },
+          {
+            "cell": "ARCH!A2",
+            "formula": "=Data!F8",
+            "meaning": "Y=u_t²; A248까지"
+          },
+          {
+            "cell": "ARCH!B2",
+            "formula": "=Data!F7",
+            "meaning": "lag1; B248까지"
+          },
+          {
+            "cell": "ARCH!C2",
+            "formula": "=Data!F6",
+            "meaning": "lag2; C248까지"
+          },
+          {
+            "cell": "ARCH!D2",
+            "formula": "=Data!F5",
+            "meaning": "lag3; D248까지"
+          },
+          {
+            "cell": "ARCH!E2",
+            "formula": "=Data!F4",
+            "meaning": "lag4; E248까지"
+          },
+          {
+            "cell": "ARCH!F2",
+            "formula": "=Data!F3",
+            "meaning": "lag5; F248까지"
+          },
+          {
+            "cell": "ARCH!H2",
+            "formula": "=ROWS(A2:A248)",
+            "meaning": "유효 관측수 247"
+          },
+          {
+            "cell": "ARCH!H3",
+            "formula": "=INDEX(LINEST(A2:A248,B2:F248,TRUE,TRUE),3,1)",
+            "meaning": "상수항 포함 회귀 R²"
+          },
+          {
+            "cell": "ARCH!H4",
+            "formula": "=H2*H3",
+            "meaning": "LM, 본 수업 ddof=0 규약"
+          },
+          {
+            "cell": "ARCH!H5",
+            "formula": "=CHISQ.DIST.RT(H4,5)",
+            "meaning": "근사 p값"
+          }
+        ],
+        "note": "Excel 구버전은 LINEST 포함 수식을 Ctrl+Shift+Enter로 입력해야 할 수 있다. Data H:I를 추가해도 요약 J열과 충돌하지 않는다."
+      },
+      "claude_prompt": "원 수익률과 평균조정 절대·제곱수익률 ACF를 같은 lag 1~20으로 그려줘. 절대·제곱 계열은 각각 자신의 평균을 빼고 같은 biased ACF 정의를 사용해줘. 상수 평균을 뺀 u에 대해 q=5를 사전 지정하고 u²의 5시차와 상수항으로 OLS 보조회귀를 구성해줘. n_eff=n−5, R², LM=n_eff*R²와 χ²(5) p값을 표시하고 statsmodels.stats.diagnostic.het_arch(u,nlags=5,ddof=0)와 대조해줘. 수익률 자체에 평균 자기상관이 크면 이 단순 평균모형의 한계를 먼저 지적해줘. 극단값·짧은 표본·무한 4차 모멘트·비정상성 때문에 근사가 나쁠 수 있음을 적고, 주변분포의 두꺼운 꼬리와 조건부 변동성 군집을 구분해줘.",
+      "interpretation": "수익률 ACF가 작아도 크기의 ACF 또는 ARCH-LM이 유의하면 비선형적 시간 의존성의 증거일 수 있다. 이것이 “무상관 ≠ 독립”을 직접 보는 실습이다.",
+      "caveats": [
+        "수익률 평균이 상수라는 기본형이다. 평균방정식에 자기상관이 있으면 적절한 평균모형을 먼저 적합하고 잔차를 진단한다. 이 경우 추정 자유도 보정 규약도 기록한다.",
+        "부호와 무관한 큰 변동의 군집을 설명하는 것이며 향후 변동성 수준을 정확히 예측했다는 의미가 아니다.",
+        "평방항은 극단값에 민감하고 고차 모멘트·정상성 조건이 나쁘면 ARCH-LM 근사가 불안정하다. 절대수익률 ACF를 함께 본다.",
+        "구조적 분산 변화와 개별 이상치도 ARCH 신호를 줄 수 있다. 유의하다는 이유만으로 GARCH(1,1)가 정답이 되지는 않는다."
+      ],
+      "toy_validation": {
+        "purpose": "주어진 보조회귀 요약값으로 LM 산술을 검산한다. 실제 회귀 결과가 아님.",
+        "n": 100,
+        "q": 5,
+        "n_eff": 95,
+        "R2": 0.12,
+        "LM": 11.4,
+        "p_chi2_df5": 0.0440012810681921,
+        "check": "100×0.12=12가 아니라 (100−5)×0.12=11.4. 5% 기각 해석은 검정 가정이 맞을 때만 가능."
+      },
+      "sources": [
+        "sm-arch",
+        "ms-linest",
+        "sm-lb"
+      ]
+    },
+    {
+      "id": "tails",
+      "number": 5,
+      "title": "꼬리의 두께 · 3σ·분위수 → Hill 추정",
+      "track": "본과정 20분",
+      "question": "극단 손실이 얼마나 자주 나타나고, 큰 손실만 골랐을 때 꼬리 감소 속도는 얼마나 민감한가?",
+      "h0": null,
+      "hypothesis_note": "본과정은 기술통계 비교다. 같은 표본에서 μ,σ를 추정하고 의존성도 있을 수 있으므로 단순 이항 p값으로 정규성을 검정하지 않는다.",
+      "statistic": "z=(r−평균)/STDEV.P(r). 초과비율=개수(|z|>3)/n. 정규 기준 2[1−Φ(3)]≈0.0026998=0.2700%. 하위 1% 분위수의 정규 기준=μ+σΦ⁻¹(0.01). Hill: 내림차순 양수 손실 L_(1)≥…≥L_(m)>0에서 ξ_hat(k)=(1/k)Σ_(i=1..k)ln[L_(i)/L_(k+1)], α_hat=1/ξ_hat. α가 작을수록 Pareto형 꼬리가 더 무겁다.",
+      "graphs": [
+        {
+          "title": "|z|>3 사건 표시",
+          "x": "거래일 / 모의 순서",
+          "y": "표준화 수익률 z",
+          "read": "±3선을 넘는 날의 수와 시간적 군집을 함께 본다."
+        },
+        {
+          "title": "실제·모의 하위 분위수 비교",
+          "x": "1%, 5% 분위수",
+          "y": "로그수익률",
+          "read": "같은 단위에서 더 음수이면 더 큰 하방 손실의 표본 징후다. 표본이 짧을수록 1% 추정은 불안정하다."
+        },
+        {
+          "title": "필수: 양수 손실의 Hill plot",
+          "x": "상위 손실 개수 k",
+          "y": "α_hat",
+          "read": "k에 따라 추정치가 얼마나 변하는지 보여준다. 수평처럼 보인다고 power law를 확정하지 않는다."
+        }
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "사건을 세기",
+          "action": "Data G열 z를 사용해 |z|>3을 세고 n으로 나눈다. 실제·모의 각각 수행한다.",
+          "check": "0.27%를 27% 또는 0.0027%로 잘못 표기하지 않는다."
+        },
+        {
+          "number": 2,
+          "title": "정규 기준과 비교",
+          "action": "기준 확률, n×기준확률, 관측개수, 관측/기준 비율을 적는다.",
+          "check": "252일 정규 기대개수는 약 0.68개다. 0개 또는 1개 차이에 과도한 의미를 주지 않는다."
+        },
+        {
+          "number": 3,
+          "title": "하위 꼬리 분리",
+          "action": "PERCENTILE.INC로 1%·5% 표본 분위수를 구하고 적합 정규모형의 해당 분위수와 비교한다. |z| 꼬리와 하방 손실 꼬리는 다름을 적는다.",
+          "check": "표본 분위수는 보간법에 의존한다. 모든 모형에 같은 정의 적용."
+        },
+        {
+          "number": 4,
+          "title": "동일 scale 비교의 함정 확인",
+          "action": "원 단위 위험 비교와 각 표본을 자체 표준화한 모양 비교를 따로 기록한다.",
+          "check": "자체 z는 실제·모의의 변동성 수준 차이를 제거한다."
+        },
+        {
+          "number": 5,
+          "title": "한 문장 제출",
+          "action": "“실제 |z|>3 비율 __%, IID 정규 기준 0.270%; 하위 1% __. n=__라 꼬리 추정은 __하다.”",
+          "check": "기준 초과만으로 정규성의 유의한 기각이라고 쓰지 않는다."
+        },
+        {
+          "number": 6,
+          "title": "양수 손실만 별도 정렬",
+          "action": "r<0인 날의 손실 L=−r을 모아 내림차순으로 정렬한다. 전체 관측수 n과 양수 손실수 m을 둘 다 적는다. 긴 공개자료 또는 생성규칙이 알려진 합성 자료를 사용한다.",
+          "check": "0·음수·로그수익률의 원부호가 섞여 LN 오류가 나지 않는지 확인."
+        },
+        {
+          "number": 7,
+          "title": "k=20 한 번 손으로",
+          "action": "상위 20개 로그손실의 평균에서 21번째 로그손실을 빼 ξ_hat를 구하고 역수 α_hat를 계산한다.",
+          "check": "L_(k)가 아닌 L_(k+1)이 문턱이다. 상위 개수와 행 주소를 확인."
+        },
+        {
+          "number": 8,
+          "title": "k를 바꾸어 Hill plot",
+          "action": "예시로 k=10,20,30,50,75,100을 사전 지정하고 m보다 작은 값만 사용한다. k별 문턱·ξ·α를 표로 만들고 선그래프를 그린다.",
+          "check": "가장 마음에 드는 α가 나오는 k를 고르지 않는다. k가 작은 구간의 요동과 큰 구간의 편향 가능성을 적는다."
+        },
+        {
+          "number": 9,
+          "title": "꼬리 생존함수 연결",
+          "action": "양수 손실을 x축, 내림차순 순위/(m+1)를 y축으로 log–log 그림을 그린다. Pareto형이면 상위 구간의 기울기가 대략 −α라는 직관을 Hill plot과 연결한다.",
+          "check": "직선처럼 보이는 짧은 구간만으로 power law를 확정하지 않는다."
+        },
+        {
+          "number": 10,
+          "title": "자료 부족도 결론으로 인정",
+          "action": "n=252에서 Hill 추정이 요동하면 그 결과를 그대로 기록한다. 합성 표본에서 계산을 검증한 것과 실제 꼬리 법칙을 알아낸 것을 분리한다.",
+          "check": "최종 문장에 k 범위·m·안정 여부를 반드시 포함."
+        }
+      ],
+      "excel": {
+        "sheet": "Tail, Hill",
+        "cells": [
+          {
+            "cell": "Tail!B2",
+            "formula": "=COUNTIF(Data!G3:G254,\">3\")+COUNTIF(Data!G3:G254,\"<-3\")",
+            "meaning": "양측 3σ 초과개수"
+          },
+          {
+            "cell": "Tail!B3",
+            "formula": "=B2/Data!J2",
+            "meaning": "관측 초과비율"
+          },
+          {
+            "cell": "Tail!B4",
+            "formula": "=2*(1-NORM.S.DIST(3,TRUE))",
+            "meaning": "정규 기준 0.002699796"
+          },
+          {
+            "cell": "Tail!B5",
+            "formula": "=Data!J2*B4",
+            "meaning": "정규 기준 기대개수"
+          },
+          {
+            "cell": "Tail!B6",
+            "formula": "=B3/B4",
+            "meaning": "관측비율/기준비율, 기술적 배수"
+          },
+          {
+            "cell": "Tail!B7",
+            "formula": "=PERCENTILE.INC(Data!C3:C254,0.01)",
+            "meaning": "경험적 하위 1%"
+          },
+          {
+            "cell": "Tail!B8",
+            "formula": "=Data!J3+Data!J4*NORM.S.INV(0.01)",
+            "meaning": "적합 정규 하위 1%"
+          },
+          {
+            "cell": "Tail!B9",
+            "formula": "=PERCENTILE.INC(Data!C3:C254,0.05)",
+            "meaning": "경험적 하위 5%"
+          },
+          {
+            "cell": "Tail!B10",
+            "formula": "=Data!J3+Data!J4*NORM.S.INV(0.05)",
+            "meaning": "적합 정규 하위 5%"
+          },
+          {
+            "cell": "Hill!D2",
+            "formula": "20",
+            "meaning": "예: k; 반드시 양수 손실 개수보다 작게"
+          },
+          {
+            "cell": "Hill!D3",
+            "formula": "=1/(AVERAGE(B2:INDEX(B:B,D2+1))-INDEX(B:B,D2+2))",
+            "meaning": "B열=내림차순 양수 손실의 LN. α_hat, k+1번째가 문턱"
+          },
+          {
+            "cell": "Hill!A2",
+            "formula": "양수 손실만 내림차순 값 붙여넣기",
+            "meaning": "원자료의 시간순서는 별도 보존"
+          },
+          {
+            "cell": "Hill!B2",
+            "formula": "=LN(A2)",
+            "meaning": "양수 손실 끝행까지 채우기"
+          },
+          {
+            "cell": "Hill!F2",
+            "formula": "10",
+            "meaning": "F열에 10,20,30,50,75,100 중 m보다 작은 k"
+          },
+          {
+            "cell": "Hill!G2",
+            "formula": "=AVERAGE($B$2:INDEX($B:$B,F2+1))-INDEX($B:$B,F2+2)",
+            "meaning": "ξ_hat(k); 아래 채우기"
+          },
+          {
+            "cell": "Hill!H2",
+            "formula": "=1/G2",
+            "meaning": "α_hat(k); 아래 채우기"
+          },
+          {
+            "cell": "Hill!I2",
+            "formula": "=INDEX($A:$A,F2+2)",
+            "meaning": "k+1번째 손실 문턱"
+          }
+        ],
+        "note": "Hill A2부터 양수 손실 L을 내림차순으로 값 붙여넣기. B2=LN(A2)를 아래로 채운다. α_hat=[(1/k)Σ_(i=1..k)ln(L_(i)/L_(k+1))]^-1. k=20이면 B2:B21 평균에서 B22를 뺀 역수다. ξ_hat=1/α_hat이며 두 기호를 혼동하지 않는다."
+      },
+      "claude_prompt": "실제·모의 수익률의 자체 표준화 z=(r−평균)/STDEV.P에 대해 |z|>3 개수·비율을 계산하고 정규 기준 0.002699796과 n×기준확률을 함께 표시해줘. 표본 하위 1%,5% 분위수는 Excel PERCENTILE.INC와 같은 선형 보간법(numpy.quantile method=linear)으로 계산하고 μ+σΦ^−1(p)와 비교해줘. 원 단위 위험 수준과 자체 표준화된 분포 모양을 구분해줘. 같은 자료에서 μ,σ를 추정했고 의존성이 있을 수 있으므로 단순 binomial p값을 적합도 검정으로 내놓지 마. 자료가 짧으면 Hill 추정을 강행하지 말고 불안정성을 설명해줘. 본과정에서는 충분한 자료 또는 라벨링된 합성 예제로 양수 손실만 내림차순으로 정렬해 k별 Hill α를 그리되 power-law 확정·t 확정이라고 결론내리지 마. Hill을 선택사항으로 생략하지 말고 양수 손실 m과 k별 문턱·ξ·α 표, log–log 생존그림, Hill plot을 만들어줘. k=10,20,30,50,75,100 중 m보다 작은 값으로 시작하고 필요한 수정은 설명해줘. 자료가 부족하면 실제 추정의 불안정성을 보고한 뒤 seed와 생성모형이 명시된 Pareto 합성 예제로 계산을 보여줘. Hill의 α와 다음 GPD의 ξ가 α≈1/ξ로 연결되는 것은 ξ>0인 Pareto형 꼬리 맥락이라는 점을 밝혀줘.",
+      "interpretation": "3σ 초과빈도와 하위 분위수는 “어떤 꼬리가 얼마나 다른가”를 손으로 확인하는 지표다. 분포 이름을 판정하는 단일 검정이 아니다.",
+      "caveats": [
+        "μ,σ를 같은 표본에서 추정한 studentized 사건은 알려진 μ,σ의 IID Bernoulli 사건과 다르다. 극단값이 σ를 키워 다른 극단 관측의 z를 작게 보이게 할 수 있다.",
+        "252개 표본의 1% 분위수는 극소수 관측과 보간에 의존한다. 긴 표본·여러 기간·불확실성 평가 없이 안정적인 VaR라고 부르지 않는다.",
+        "꼬리가 정규보다 두껍다는 관찰과 정규변동 꼬리(regular variation)라는 수학적 주장은 다르다. Hill은 후자의 양의 꼬리지수 가정·문턱 선택에 민감하다.",
+        "Hill은 양수 손실의 오른쪽 꼬리를 다루며 수익률 양·음 전체를 무심코 섞지 않는다. k가 작으면 분산, 크면 문턱 편향이 커질 수 있다.",
+        "시뮬레이션 한 경로와의 차이가 모델 차이인지 표본 운인지 구분하려면 같은 길이의 반복 모의 분포도 살핀다.",
+        "α_hat는 모든 원자료의 분포를 t라고 판정하는 값이 아니다. Student t의 이론 꼬리지수는 자유도 ν와 연결되지만, Hill 숫자 하나만으로 t분포를 식별할 수 없다."
+      ],
+      "toy_validation": {
+        "purpose": "모두 인공 산술 예제",
+        "normal_probability_abs_z_gt3": 0.0026997960632601866,
+        "expected_count_n252": 0.680348607941567,
+        "example_n": 1000,
+        "example_exceedances": 10,
+        "example_exceedance_rate": 0.01,
+        "example_ratio_to_normal": 3.704,
+        "quantile_input": [
+          -4,
+          -2,
+          -1,
+          0,
+          1,
+          2,
+          4
+        ],
+        "quantile_p01_linear": -3.88,
+        "hill_example_descending_losses": [
+          8,
+          4,
+          2
+        ],
+        "hill_k": 2,
+        "hill_alpha": 0.9617966939259757,
+        "hill_check": "[ (ln(8/2)+ln(4/2))/2 ]^−1 = 0.9617967. 계산 검산이며 3개 손실로 꼬리지수를 추론하지 않는다."
+      },
+      "sources": [
+        "nist-normal",
+        "hill-original",
+        "nist-ks"
+      ]
+    },
+    {
+      "id": "pot-gpd",
+      "number": 6,
+      "title": "극단 손실만 따로 · POT와 GPD 꼬리 적합",
+      "track": "본과정 20분",
+      "question": "전체 분포 하나를 억지로 맞추기보다, 큰 손실 문턱을 넘은 부분만 모형화하면 어떨까?",
+      "h0": null,
+      "hypothesis_note": "이 실습은 문턱 선택·최대우도 적합·진단이다. 별도의 보정된 적합도 검정 없이는 “GPD를 검정으로 확인”했다고 쓰지 않는다.",
+      "statistic": "손실 L=−r, 문턱 u, 초과량 Y=L−u | L>u. GPD 생존함수 S(y)=(1+ξy/β)^(−1/ξ), ξ≠0; ξ=0이면 exp(−y/β). β>0, y≥0, 1+ξy/β>0. ξ>0은 Pareto형 두꺼운 꼬리, ξ=0은 지수형, ξ<0은 유한 상한.",
+      "graphs": [
+        {
+          "title": "손실 시계열 + 문턱 u",
+          "x": "날짜 / 모의 순서",
+          "y": "손실 L=−r",
+          "read": "문턱 위 점만 색칠한다. GPD는 이 점들의 원래 높이가 아니라 문턱 초과 높이를 맞춘다."
+        },
+        {
+          "title": "초과량 QQ",
+          "x": "적합 GPD의 이론 초과량 분위수",
+          "y": "오름차순 실제 초과량",
+          "read": "y=x와의 이탈, 특히 가장 큰 점을 본다. 전체 손실 QQ와 혼동하지 않는다."
+        },
+        {
+          "title": "꼬리 생존함수",
+          "x": "손실 x>u",
+          "y": "P(L>x), 로그 y축",
+          "read": "경험적 초과확률과 (N_u/n)×GPD 생존함수를 겹친다. N_u/n을 빠뜨리면 조건부 확률을 무조건부 확률로 착각한다."
+        },
+        {
+          "title": "문턱 민감도",
+          "x": "문턱 분위수 90%,95%,97.5%",
+          "y": "ξ 추정값·초과개수",
+          "read": "높은 문턱일수록 꼬리 근사는 좋아질 수 있지만 쓸 자료가 줄어 추정이 요동한다."
+        }
+      ],
+      "steps": [
+        {
+          "number": 1,
+          "title": "문턱을 눈으로 이해",
+          "action": "손실 L=−r을 시간순으로 그리고 95% 손실 분위수 u를 수평선으로 긋는다. 전체 n, 문턱 u, 초과개수 N_u를 기록한다.",
+          "check": "L은 로그수익률 부호만 바꾼 손실이다. 단순 손실률과 혼동하지 않는다."
+        },
+        {
+          "number": 2,
+          "title": "초과량 직접 만들기",
+          "action": "u보다 큰 손실만 골라 Y=L−u를 만든다. 예: u=0.02, L=0.05이면 Y=0.03. 초과가 아닌 값은 0으로 넣지 않고 제외한다.",
+          "check": "양의 초과량만 남는다. 문턱 아래 점을 0으로 잔뜩 붙이면 전혀 다른 적합이다."
+        },
+        {
+          "number": 3,
+          "title": "문턱을 고정하고 GPD 적합",
+          "action": "Y에 location=0을 고정하고 shape ξ와 scale β만 MLE로 추정한다. 초기 ξ=−0.1,0.1,0.3 등을 바꾸어 logL와 수렴을 확인한다.",
+          "check": "문턱 u를 정해 뺐는데 location을 다시 자유 추정하지 않는다. 지지집합 1+ξY/β>0 확인."
+        },
+        {
+          "number": 4,
+          "title": "QQ와 생존함수 확인",
+          "action": "초과량 정렬 후 p=(i−0.5)/N_u의 이론 GPD 분위수를 구해 QQ를 그린다. 손실축 생존함수에는 N_u/n을 곱한다.",
+          "check": "ξ=0 근처에는 지수분포 극한공식을 사용한다."
+        },
+        {
+          "number": 5,
+          "title": "90·95·97.5%를 반복",
+          "action": "각 문턱마다 u,N_u,ξ,β,수렴 상태를 표로 만든다. ξ 안정 구간과 QQ 이탈을 함께 보고 하나의 숫자를 맹신하지 않는다.",
+          "check": "문턱이 바뀌면 데이터가 달라지므로 raw AIC 값의 최소만으로 문턱을 선택하지 않는다."
+        },
+        {
+          "number": 6,
+          "title": "Hill과 연결해 설명",
+          "action": "양의 ξ이고 Pareto형 가정이 그럴듯할 때 1/ξ와 Hill α의 범위를 비교한다. 불일치는 문턱·표본·의존성·모형오류 후보로 기록한다.",
+          "check": "Hill과 GPD가 항상 같은 값이어야 하는 것은 아니다."
+        },
+        {
+          "number": 7,
+          "title": "짧은 자료와 군집 처리",
+          "action": "252일의 95% 문턱은 약 13개 초과밖에 없다. 본과정에서 긴 자료나 알려진 합성 표본으로 실행하되 실제 자료 결론은 보수적으로 쓴다.",
+          "check": "연속된 극단 손실을 독립 사건처럼 처리한 표준오차는 지나치게 작을 수 있다."
+        }
+      ],
+      "excel": {
+        "sheet": "POT; TailQQ",
+        "cells": [
+          {
+            "cell": "POT!A3",
+            "formula": "=-Data!C3",
+            "meaning": "A254까지 손실 L"
+          },
+          {
+            "cell": "POT!H2",
+            "formula": "=PERCENTILE.INC(A3:A254,0.95)",
+            "meaning": "문턱 u"
+          },
+          {
+            "cell": "POT!H5",
+            "formula": "=COUNTIF(A3:A254,\">\"&H2)",
+            "meaning": "초과개수 N_u"
+          },
+          {
+            "cell": "POT!H6",
+            "formula": "=COUNT(A3:A254)",
+            "meaning": "전체 관측수 n"
+          },
+          {
+            "cell": "POT!B3",
+            "formula": "=FILTER(A3:A254-$H$2,A3:A254>$H$2)",
+            "meaning": "Microsoft 365: 양수 초과량 spill. 구버전은 필터 후 값 붙여넣기"
+          },
+          {
+            "cell": "POT!H3",
+            "formula": "초기값: AVERAGE(B3#)의 숫자",
+            "meaning": "β>0, Solver 변경 셀"
+          },
+          {
+            "cell": "POT!H4",
+            "formula": "0.1",
+            "meaning": "ξ, Solver 변경 셀"
+          },
+          {
+            "cell": "POT!C3",
+            "formula": "=IF(ABS($H$4)<1E-7,-LN($H$3)-B3/$H$3,-LN($H$3)-(1+1/$H$4)*LN(1+$H$4*B3/$H$3))",
+            "meaning": "초과량이 존재하는 행만 아래 채우기; 관측별 로그밀도"
+          },
+          {
+            "cell": "POT!D3",
+            "formula": "=1+$H$4*B3/$H$3",
+            "meaning": "같은 행만 아래 채우기; 지지집합 확인"
+          },
+          {
+            "cell": "POT!H7",
+            "formula": "=SUM(C3:INDEX(C:C,H5+2))",
+            "meaning": "Solver가 최대화할 logL"
+          },
+          {
+            "cell": "POT!H8",
+            "formula": "=MIN(D3:INDEX(D:D,H5+2))",
+            "meaning": ">0이어야 함"
+          },
+          {
+            "cell": "TailQQ!A2",
+            "formula": "=ROW()-1",
+            "meaning": "초과개수 N_u만큼 순위"
+          },
+          {
+            "cell": "TailQQ!B2",
+            "formula": "=SMALL(POT!$B$3:INDEX(POT!$B:$B,POT!$H$5+2),A2)",
+            "meaning": "정렬 초과량"
+          },
+          {
+            "cell": "TailQQ!C2",
+            "formula": "=(A2-0.5)/POT!$H$5",
+            "meaning": "조건부 plotting position"
+          },
+          {
+            "cell": "TailQQ!D2",
+            "formula": "=IF(ABS(POT!$H$4)<1E-7,-POT!$H$3*LN(1-C2),POT!$H$3/POT!$H$4*((1-C2)^(-POT!$H$4)-1))",
+            "meaning": "이론 GPD 초과량 분위수"
+          },
+          {
+            "cell": "TailQQ!E2",
+            "formula": "=POT!$H$2+B2",
+            "meaning": "생존함수용 손실 x"
+          },
+          {
+            "cell": "TailQQ!F2",
+            "formula": "=(POT!$H$5/POT!$H$6)*(1-C2)",
+            "meaning": "경험적 꼬리확률 plotting position"
+          },
+          {
+            "cell": "TailQQ!G2",
+            "formula": "=POT!$H$5/POT!$H$6*IF(ABS(POT!$H$4)<1E-7,EXP(-B2/POT!$H$3),(1+POT!$H$4*B2/POT!$H$3)^(-1/POT!$H$4))",
+            "meaning": "적합 무조건부 꼬리확률"
+          }
+        ],
+        "note": "Solver: H7 최대, 변경 H3:H4, β≥1E−8와 H8≥1E−8. 수업의 수치안정용 후보군을 −0.45≤ξ≤1.5로 사전 제한하고 경계 도달을 반드시 보고한다(일반 GPD 정의의 제한이 아님). 비제약 변수 비음수 옵션을 끈다. 제약 위반 중간 계산에서 #NUM이 나거나 수렴하지 않으면 Claude/Python의 제약 최적화로 넘어가고 실패를 숨기지 않는다. 초과량이 0개거나 너무 적으면 적합하지 않는다."
+      },
+      "claude_prompt": "공개·교육용 손실 L=−로그수익률로 POT/GPD 실습을 해줘. 문턱 분위수 0.90,0.95,0.975마다 u,N_u,n을 먼저 표시하고 Y=L−u | L>u만 추출해줘. location=0 고정, β>0,1+ξY/β>0에서 GPD MLE를 적합해줘. 수업 Excel과 맞추려면 −0.45≤ξ≤1.5 제한 및 여러 초기값을 사용하고 수렴·경계 상태를 보고해줘. scipy.stats.genpareto.fit(Y,floc=0)의 제한 없는 결과와 비교할 때 후보군 차이를 명시해줘. QQ와 (N_u/n)*GPD.sf(x−u) 생존함수, 문턱별 ξ·β·초과개수 표를 그려줘. 다른 문턱끼리 raw AIC만 비교해 문턱을 고르지 마. 알려진 ξ=0.25,β=0.01의 합성 초과량 예제(seed 고정)를 먼저 써 계산을 검산하고 실제 자료 결과와 명확히 분리해줘. 너무 적은 초과·극단 군집·비정상성의 한계를 적고, 필요한 불확실성은 의존성을 고려한 설계나 조건부 표준화가 필요하다고 설명해줘. GPD를 검정으로 확인했다고 쓰거나 극단 분위수를 확정적 위험 수치로 제시하지 마.",
+      "interpretation": "GPD는 전체 수익률 분포의 대체물이 아니라 문턱 위 손실의 조건부 초과량 모형이다. 문턱 안정성·꼬리 QQ·초과개수·군집까지 보고 꼬리 설명의 타당성을 판단한다.",
+      "caveats": [
+        "문턱을 낮추면 표본은 많아도 꼬리 근사가 부정확할 수 있고, 높이면 표본 감소로 불확실성이 커진다. 95%가 모든 자료에 맞는 정답은 아니다.",
+        "초과량을 독립으로 취급하는 MLE 및 불확실성 계산은 금융 변동성 군집에서 조심해야 한다. 블록 기반 불확실성 평가, 적절한 조건부 모형의 표준화 잔차, 목적에 맞는 극단 사건 declustering 등을 별도 검토한다.",
+        "Declustering은 분석단위와 빈도를 바꾼다. 군집 최대만 남기고 원래 일별 N_u/n을 그대로 적용하지 않는다.",
+        "GPD shape 부호 관행이 문헌마다 다르다. 여기서는 SciPy genpareto의 c=ξ이며 ξ>0이 두꺼운 꼬리다.",
+        "ξ>0일 때 Pareto형 꼬리에서 α=1/ξ가 연결된다. ξ≤0에 Hill α를 기계적으로 대응시키지 않는다.",
+        "추정 ξ≥1이면 GPD 평균, ξ≥1/2이면 분산이 존재하지 않는 모형이다. 이를 데이터의 실제 모멘트 부재가 입증됐다고 해석하지 않는다.",
+        "추정한 GPD에 일반 KS p값을 바로 적용하지 않는다. 재적합과 문턱 선택을 반영한 보정 및 의존성 가정이 필요하다."
+      ],
+      "toy_validation": {
+        "purpose": "생존확률·조건부/무조건부 변환 산술 예제. 적합된 실제 시장 모수 아님.",
+        "threshold_u": 0.02,
+        "loss_L": 0.05,
+        "excess_Y": 0.03,
+        "xi": 0.25,
+        "beta": 0.01,
+        "conditional_survival": 0.10662224073302791,
+        "n": 1000,
+        "N_u": 50,
+        "unconditional_survival": 0.005331112036651396,
+        "gpd_conditional_p95_excess": 0.04458970107524511,
+        "explanation": "조건부 초과확률 약 10.66%에 문턱 초과율 5%를 곱하면 P(L>0.05) 약 0.533%가 된다. 10.66%를 전체 손실확률로 보고하면 틀린다."
+      },
+      "sources": [
+        "scipy-gpd",
+        "nist-pot",
+        "nist-gpd-original",
+        "nist-ks"
+      ]
+    }
+  ],
+  "debrief": {
+    "title": "실습별 마지막 1분 · 모델의 실패 지점 하나 고르기",
+    "questions": [
+      "정규성·꼬리 모양과 시간 의존성 중 어떤 차이가 가장 컸는가?",
+      "t로 분포를 바꾸면 고쳐질 차이와, 시간가변 변동성 모형이 필요한 차이를 구분할 수 있는가?",
+      "검정의 가정 때문에 아직 결론을 보류해야 하는 부분은 무엇인가?"
+    ],
+    "submission": [
+      "실제·모의 n과 데이터 기간",
+      "QQ의 양쪽 꼬리 관찰",
+      "|z|>3 개수·비율과 정규 기대개수",
+      "수익률·절대수익률 ACF 비교",
+      "선택한 확장 검정의 통계량·p값 또는 AIC와 가정",
+      "모형 수정 아이디어 1개와 아직 확인하지 못한 점 1개",
+      "Hill의 k·문턱·α 민감도",
+      "POT 문턱별 N_u·ξ·β와 QQ·생존함수 진단"
+    ],
+    "answer_template": "실제 __와 모의 __를 같은 __일 수익률 n=__로 비교했다. __그림에서 __차이를 보았고, __통계량은 __였다. 다만 __가정/표본 제약이 있어 __까지는 말할 수 없다. 다음 모형에서 __를 바꿔 다시 확인하겠다."
+  },
+  "optional_repetition": {
+    "title": "표본 운과 모형 차이를 분리하기",
+    "steps": [
+      "같은 n과 모수의 IID 정규·IID t 모의 표본을 각각 최소 100회 생성하고 seed를 기록한다.",
+      "각 표본에서 전체 분석을 동일하게 반복하여 3σ 초과비율·최대 |ACF|·QQ 꼬리편차의 분포를 그린다. 추정된 모수를 쓰는 검정이면 표본마다 재추정한다.",
+      "실제값이 이 모의 기준 분포의 어디에 놓이는지 표시하되, 시계열 의존성에 대한 유효한 검정을 하려면 적절한 귀무 생성모형과 충분한 반복 횟수가 필요함을 적는다."
+    ],
+    "warning": "100회는 변동성을 눈으로 보는 수업 확장이다. 정확한 작은 p값 평가에는 더 많은 반복과 Monte Carlo 오차 표기가 필요하다. 정규 귀무 IID 모의는 실제 자료의 의존성을 자동 보정하지 않는다."
+  },
+  "glossary": [
+    {
+      "term": "주변분포 / 무조건부 분포",
+      "meaning": "시간순서를 접어 두고 모든 날의 수익률을 한 통에 담아 본 분포."
+    },
+    {
+      "term": "조건부 분포",
+      "meaning": "어제까지의 정보와 오늘의 변동성 상태를 고려한 수익률 분포."
+    },
+    {
+      "term": "무상관",
+      "meaning": "선형 관계가 없다는 뜻. 크기·제곱의 의존성은 남아 있을 수 있다."
+    },
+    {
+      "term": "POT",
+      "meaning": "Peaks Over Threshold, 높은 문턱을 넘는 값만 따로 보는 방법."
+    },
+    {
+      "term": "GPD",
+      "meaning": "Generalized Pareto Distribution, 문턱 초과량을 설명하는 꼬리 분포."
+    },
+    {
+      "term": "Hill α",
+      "meaning": "Pareto형 꼬리의 감소 속도. α가 작을수록 더 두꺼운 꼬리."
+    }
+  ]
+}
