@@ -36,6 +36,36 @@
     "type": "TSV"
   },
   {
+    "file": "credit-transition-matrix.csv",
+    "title": "교육용 신용 전이행렬",
+    "description": "CreditMetrics(1997) Table 1.8 · 확률과 Excel용 누적 하한",
+    "type": "CSV"
+  },
+  {
+    "file": "credit.js",
+    "title": "신용 전이 모형 소스",
+    "description": "브라우저 ES 모듈 · 1요인 몬테카를로 · 시드 재현 가능",
+    "type": "JS"
+  },
+  {
+    "file": "validate-credit.mjs",
+    "title": "신용 모형 검증 스크립트",
+    "description": "credit.js와 같은 폴더에서 node validate-credit.mjs",
+    "type": "JS"
+  },
+  {
+    "file": "credit-validation.json",
+    "title": "신용 모형 재현성 점검 결과",
+    "description": "3개 시드 × ρ 4개 · EL과 분위수 · 해석적 EL 대조",
+    "type": "JSON"
+  },
+  {
+    "file": "credit-notes.md",
+    "title": "신용 시뮬레이션 수식과 한계",
+    "description": "전이행렬·문턱·1요인 모형·default-mode 범위",
+    "type": "MD"
+  },
+  {
     "file": "source-and-statistics.json",
     "title": "실제 데이터 분석 결과",
     "description": "출처·기간·변환·분포와 상관계수 · 원가격 미포함",
@@ -43,25 +73,25 @@
   },
   {
     "file": "abm.js",
-    "title": "Bornholdt 모형 소스",
-    "description": "브라우저 ES 모듈 · 독립 작성 · 시드 재현 가능",
+    "title": "심화 · Bornholdt 모형 소스",
+    "description": "심화 확장(시장 ABM) · 브라우저 ES 모듈 · 시드 재현 가능",
     "type": "JS"
   },
   {
     "file": "abm-validation.json",
-    "title": "ABM 재현성 점검 결과",
+    "title": "심화 · ABM 재현성 점검 결과",
     "description": "3개 시드·4개 설정·초기 5,000 sweep 제외",
     "type": "JSON"
   },
   {
     "file": "validate-abm.mjs",
-    "title": "ABM 검증 스크립트",
+    "title": "심화 · ABM 검증 스크립트",
     "description": "abm.js와 같은 폴더에서 node validate-abm.mjs",
     "type": "JS"
   },
   {
     "file": "abm-notes.md",
-    "title": "ABM 수식과 구현 설명",
+    "title": "심화 · ABM 수식과 구현 설명",
     "description": "모형 규칙·가격 연결·API·검증의 한계",
     "type": "MD"
   },
