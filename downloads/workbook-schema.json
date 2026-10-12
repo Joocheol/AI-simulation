@@ -1,0 +1,141 @@
+{
+  "version": "1.0",
+  "workbook": "stylized-facts-lab.xlsx",
+  "input": {
+    "sheet": "input",
+    "range": "A2:A2001",
+    "field": "own_log_return",
+    "units": "decimal natural-log return",
+    "max_n": 2000,
+    "ordering": "chronological, contiguous numeric cells"
+  },
+  "selector": {
+    "cell": "요약!B4",
+    "values": {
+      "1": "normal_synthetic",
+      "2": "t5_synthetic",
+      "3": "garch_synthetic",
+      "4": "own_log_returns"
+    }
+  },
+  "moments": {
+    "n": "요약!B6",
+    "mean": "요약!B7",
+    "variance_population": "요약!B8",
+    "skewness_population": "요약!B9",
+    "excess_kurtosis_population": "요약!B10",
+    "jb": "요약!B11",
+    "jb_p_iid_asymptotic": "요약!B12",
+    "std_population": "요약!B13"
+  },
+  "acf": {
+    "header": "ACF!A4:G4",
+    "rows": "ACF!A5:G24",
+    "columns": [
+      "lag",
+      "acf_return",
+      "acf_absolute",
+      "acf_square",
+      "lb_q",
+      "df",
+      "lb_p_asymptotic"
+    ],
+    "mean": "full-sample",
+    "denominator": "full-sample sum of squared deviations"
+  },
+  "qq": {
+    "range": "분포!A5:D2004",
+    "columns": [
+      "rank",
+      "normal_theoretical_z",
+      "ordered_return",
+      "fitted_normal_return"
+    ],
+    "formula": "NORM.S.INV((rank-0.5)/n)",
+    "chart_note": "Create Excel XY chart from instructions at 분포!I22:I29; X=B5:B(n+4), Y=C5:C(n+4) and D5:D(n+4)."
+  },
+  "histogram": {
+    "upper_bounds": "분포!F5:F15",
+    "counts": "분포!G5:G16",
+    "interval": "first <=bound; others (previous,bound]; last >0.05"
+  },
+  "hill": {
+    "tail_selector": "Hill!B4",
+    "tail_values": {
+      "1": "loss",
+      "2": "gain",
+      "3": "absolute"
+    },
+    "k": "Hill!B5",
+    "positive_n": "Hill!B6",
+    "u_x_kplus1": "Hill!B7",
+    "xi": "Hill!B8",
+    "alpha": "Hill!B9",
+    "warning": "Hill!B10",
+    "sensitivity": "Hill!F5:I24",
+    "sensitivity_columns": [
+      "k",
+      "u",
+      "xi",
+      "alpha"
+    ],
+    "sorted_positive": "Hill!K5:K2004"
+  },
+  "python_only": [
+    "t MLE and AIC",
+    "GPD-POT MLE and diagnostics",
+    "ARCH-LM"
+  ],
+  "result_csv_fields": [
+    "sample",
+    "n",
+    "mean",
+    "population_variance",
+    "population_skewness",
+    "population_excess_kurtosis",
+    "jb_stat",
+    "jb_p_iid_asymptotic",
+    "lb_lag",
+    "lb_q",
+    "lb_df",
+    "lb_p_asymptotic",
+    "acf_r_lag1",
+    "acf_abs_lag1",
+    "acf_sq_lag1",
+    "normal_loglik",
+    "normal_parameter_count",
+    "normal_aic",
+    "t_loglik",
+    "t_df",
+    "t_scale",
+    "t_parameter_count",
+    "t_aic",
+    "tail_side",
+    "hill_k",
+    "hill_threshold",
+    "hill_xi",
+    "hill_alpha",
+    "hill_ties_or_warning",
+    "pot_threshold",
+    "pot_exceedances",
+    "pot_xi",
+    "pot_beta",
+    "pot_convergence",
+    "pot_support_valid",
+    "pot_qq_notes",
+    "threshold_sensitivity",
+    "assumptions_and_limitations",
+    "conclusion"
+  ],
+  "timing_minutes": {
+    "intro_pi_gbm": 60,
+    "statistics": 100,
+    "break": 20,
+    "abm": 120
+  },
+  "synthetic": {
+    "seed": 20261003,
+    "n_each": 1000,
+    "source": "original synthetic, no real raw prices"
+  }
+}

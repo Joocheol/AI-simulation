@@ -1,0 +1,5 @@
+sample,n,mean,population_variance,population_skewness,population_excess_kurtosis,jb_stat,jb_p_iid_asymptotic,lb_lag,lb_q,lb_df,lb_p_asymptotic,acf_r_lag1,acf_abs_lag1,acf_sq_lag1,normal_loglik,normal_parameter_count,normal_aic,t_loglik,t_df,t_scale,t_parameter_count,t_aic,tail_side,hill_k,hill_threshold,hill_xi,hill_alpha,hill_ties_or_warning,pot_threshold,pot_exceedances,pot_xi,pot_beta,pot_convergence,pot_support_valid,pot_qq_notes,threshold_sensitivity,assumptions_and_limitations,conclusion
+normal_synthetic,,,,,,,,20,,20,,,,,,2,,,,,3,,,,,,,,,,,,,,,,,
+t5_synthetic,,,,,,,,20,,20,,,,,,2,,,,,3,,,,,,,,,,,,,,,,,
+garch_synthetic,,,,,,,,20,,20,,,,,,2,,,,,3,,,,,,,,,,,,,,,,,
+own_log_returns,,,,,,,,20,,20,,,,,,2,,,,,3,,,,,,,,,,,,,,,,,

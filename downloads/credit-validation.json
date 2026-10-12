@@ -1,0 +1,505 @@
+{
+ "generated": "2026-10-04",
+ "model": "CreditMetrics TD (1997) Table 1.8 transitions + one-factor Gaussian copula, default-mode losses, EAD 1, LGD 0.45",
+ "method": "Seeded Mulberry32, Box-Muller normals, 20000 trials per run, order-statistic quantiles sorted[ceil(p*n)-1]. Finite-run diagnostics, not market calibration or capital figures.",
+ "analytic": {
+  "expectedDefaults": 1.8584530650945306,
+  "expectedLossPct": 0.8363038792925387
+ },
+ "tests": [
+  "row AAA sums to 1",
+  "row AAA cumulative ascending",
+  "row AA sums to 1",
+  "row AA cumulative ascending",
+  "row A sums to 1",
+  "row A cumulative ascending",
+  "row BBB sums to 1",
+  "row BBB cumulative ascending",
+  "row BB sums to 1",
+  "row BB cumulative ascending",
+  "row B sums to 1",
+  "row B cumulative ascending",
+  "row CCC sums to 1",
+  "row CCC cumulative ascending",
+  "normCdf(normInv(p)) round trip",
+  "normInv spot values",
+  "uniform-interval frequencies match matrix (BBB)",
+  "asset thresholds invert cumulative tail (BB)",
+  "rho=0 asset mapping matches matrix (B)",
+  "fixed seed deterministic",
+  "lgd=0 gives zero loss",
+  "EL near analytic (rho=0, seed=7)",
+  "EL near analytic (rho=0, seed=42)",
+  "EL near analytic (rho=0, seed=2026)",
+  "EL near analytic (rho=0.1, seed=7)",
+  "EL near analytic (rho=0.1, seed=42)",
+  "EL near analytic (rho=0.1, seed=2026)",
+  "EL near analytic (rho=0.2, seed=7)",
+  "EL near analytic (rho=0.2, seed=42)",
+  "EL near analytic (rho=0.2, seed=2026)",
+  "EL near analytic (rho=0.4, seed=7)",
+  "EL near analytic (rho=0.4, seed=42)",
+  "EL near analytic (rho=0.4, seed=2026)",
+  "tail grows with rho (seed=7)",
+  "tail grows with rho (seed=42)",
+  "tail grows with rho (seed=2026)"
+ ],
+ "results": [
+  {
+   "regime": "rho_0",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0,
+    "lgd": 0.45,
+    "seed": 7,
+    "trials": 20000
+   },
+   "meanDefaults": 1.85195,
+   "expectedLossPct": 0.833377500000044,
+   "sdPct": 0.5719802667619578,
+   "q95Pct": 1.8,
+   "q99Pct": 2.25,
+   "q999Pct": 3.15,
+   "maxPct": 4.05
+  },
+  {
+   "regime": "rho_0",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0,
+    "lgd": 0.45,
+    "seed": 42,
+    "trials": 20000
+   },
+   "meanDefaults": 1.85385,
+   "expectedLossPct": 0.8342325000000419,
+   "sdPct": 0.5746222850553357,
+   "q95Pct": 1.8,
+   "q99Pct": 2.25,
+   "q999Pct": 3.15,
+   "maxPct": 3.6
+  },
+  {
+   "regime": "rho_0",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0,
+    "lgd": 0.45,
+    "seed": 2026,
+    "trials": 20000
+   },
+   "meanDefaults": 1.84675,
+   "expectedLossPct": 0.831037500000047,
+   "sdPct": 0.57237547054158,
+   "q95Pct": 1.8,
+   "q99Pct": 2.25,
+   "q999Pct": 2.7,
+   "maxPct": 3.6
+  },
+  {
+   "regime": "rho_0.1",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.1,
+    "lgd": 0.45,
+    "seed": 7,
+    "trials": 20000
+   },
+   "meanDefaults": 1.8478,
+   "expectedLossPct": 0.8315100000000448,
+   "sdPct": 0.7597510980489137,
+   "q95Pct": 2.25,
+   "q99Pct": 3.15,
+   "q999Pct": 4.5,
+   "maxPct": 7.65
+  },
+  {
+   "regime": "rho_0.1",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.1,
+    "lgd": 0.45,
+    "seed": 42,
+    "trials": 20000
+   },
+   "meanDefaults": 1.83375,
+   "expectedLossPct": 0.8251875000000473,
+   "sdPct": 0.7588944332921318,
+   "q95Pct": 2.25,
+   "q99Pct": 3.15,
+   "q999Pct": 4.5,
+   "maxPct": 7.65
+  },
+  {
+   "regime": "rho_0.1",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.1,
+    "lgd": 0.45,
+    "seed": 2026,
+    "trials": 20000
+   },
+   "meanDefaults": 1.8368,
+   "expectedLossPct": 0.8265600000000509,
+   "sdPct": 0.7669049638391227,
+   "q95Pct": 2.25,
+   "q99Pct": 3.15,
+   "q999Pct": 4.5,
+   "maxPct": 6.3
+  },
+  {
+   "regime": "rho_0.2",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.2,
+    "lgd": 0.45,
+    "seed": 7,
+    "trials": 20000
+   },
+   "meanDefaults": 1.8437,
+   "expectedLossPct": 0.8296650000000427,
+   "sdPct": 0.9488058280807822,
+   "q95Pct": 2.7,
+   "q99Pct": 4.5,
+   "q999Pct": 6.75,
+   "maxPct": 11.7
+  },
+  {
+   "regime": "rho_0.2",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.2,
+    "lgd": 0.45,
+    "seed": 42,
+    "trials": 20000
+   },
+   "meanDefaults": 1.83455,
+   "expectedLossPct": 0.8255475000000488,
+   "sdPct": 0.9460598298754525,
+   "q95Pct": 2.7,
+   "q99Pct": 4.05,
+   "q999Pct": 6.75,
+   "maxPct": 11.25
+  },
+  {
+   "regime": "rho_0.2",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.2,
+    "lgd": 0.45,
+    "seed": 2026,
+    "trials": 20000
+   },
+   "meanDefaults": 1.848,
+   "expectedLossPct": 0.8316000000000527,
+   "sdPct": 0.9654703758543465,
+   "q95Pct": 2.7,
+   "q99Pct": 4.5,
+   "q999Pct": 6.75,
+   "maxPct": 11.7
+  },
+  {
+   "regime": "rho_0.4",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.4,
+    "lgd": 0.45,
+    "seed": 7,
+    "trials": 20000
+   },
+   "meanDefaults": 1.8428,
+   "expectedLossPct": 0.8292600000000412,
+   "sdPct": 1.3260517610800733,
+   "q95Pct": 3.15,
+   "q99Pct": 6.3,
+   "q999Pct": 11.7,
+   "maxPct": 19.35
+  },
+  {
+   "regime": "rho_0.4",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.4,
+    "lgd": 0.45,
+    "seed": 42,
+    "trials": 20000
+   },
+   "meanDefaults": 1.81985,
+   "expectedLossPct": 0.8189325000000396,
+   "sdPct": 1.314733570599674,
+   "q95Pct": 3.15,
+   "q99Pct": 5.85,
+   "q999Pct": 11.25,
+   "maxPct": 18.45
+  },
+  {
+   "regime": "rho_0.4",
+   "parameters": {
+    "portfolio": [
+     {
+      "rating": "A",
+      "count": 20
+     },
+     {
+      "rating": "BBB",
+      "count": 40
+     },
+     {
+      "rating": "BB",
+      "count": 25
+     },
+     {
+      "rating": "B",
+      "count": 10
+     },
+     {
+      "rating": "CCC",
+      "count": 5
+     }
+    ],
+    "rho": 0.4,
+    "lgd": 0.45,
+    "seed": 2026,
+    "trials": 20000
+   },
+   "meanDefaults": 1.85825,
+   "expectedLossPct": 0.8362125000000475,
+   "sdPct": 1.367335094300713,
+   "q95Pct": 3.6,
+   "q99Pct": 6.75,
+   "q999Pct": 11.25,
+   "maxPct": 22.05
+  }
+ ]
+}
